@@ -1,5 +1,6 @@
 "use client";
 
+import { AnimatePresence, motion } from "framer-motion";
 import { FormEvent, useMemo, useState } from "react";
 import { PantryMap, type PantryMapPoint } from "./PantryMap";
 
@@ -294,10 +295,21 @@ export function PantryInputExperience() {
         <section className="rounded-lg border border-[#ded8c8] bg-[#fffdf8] p-5 shadow-sm">
           <SectionTitle title="Top buys" />
           {analysis?.recommendations.length ? (
-            <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-              {analysis.recommendations.map((recommendation) => (
-                <article
+            <motion.div layout className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              <AnimatePresence mode="popLayout">
+                {analysis.recommendations.map((recommendation, index) => (
+                <motion.article
                   key={recommendation.ingredient.nodeId}
+                  layout
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 320,
+                    damping: 28,
+                    delay: index * 0.03,
+                  }}
                   className="rounded-md border border-[#e3ddcf] bg-white p-4"
                 >
                   <div className="flex items-start justify-between gap-3">
@@ -316,9 +328,10 @@ export function PantryInputExperience() {
                       <li key={reason}>{reason}</li>
                     ))}
                   </ul>
-                </article>
-              ))}
-            </div>
+                </motion.article>
+                ))}
+              </AnimatePresence>
+            </motion.div>
           ) : (
             <p className="mt-4 text-sm text-[#6d7568]">
               Recommendations will appear here after analysis.

@@ -14,6 +14,7 @@ import {
   useEdgesState,
   useNodesState,
 } from "@xyflow/react";
+import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 
 export type PantryMapPoint = {
@@ -100,24 +101,33 @@ export function PantryMap({ points }: PantryMapProps) {
         <LegendDot className="bg-[#c7782b]" label="recommended" />
       </div>
 
-      {selectedNode ? (
-        <div className="absolute right-4 top-4 z-20 w-52 rounded-lg border border-[#d8d0be] bg-white/95 p-3 text-sm shadow-lg">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#8c917f]">
-            {selectedNode.data.kind}
-          </p>
-          <h3 className="mt-1 font-semibold text-[#1f2520]">
-            {selectedNode.data.name}
-          </h3>
-          {selectedNode.data.score ? (
-            <p className="mt-2 text-[#596153]">
-              Recommendation score {selectedNode.data.score.toFixed(3)}
+      <AnimatePresence>
+        {selectedNode ? (
+          <motion.div
+            key={selectedNode.id}
+            initial={{ opacity: 0, y: -8, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -8, scale: 0.98 }}
+            transition={{ type: "spring", stiffness: 380, damping: 30 }}
+            className="absolute right-4 top-4 z-20 w-52 rounded-lg border border-[#d8d0be] bg-white/95 p-3 text-sm shadow-lg"
+          >
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#8c917f]">
+              {selectedNode.data.kind}
             </p>
-          ) : null}
-          <p className="mt-2 text-[#596153]">
-            Drag nodes to untangle the branch and inspect ingredient links.
-          </p>
-        </div>
-      ) : null}
+            <h3 className="mt-1 font-semibold text-[#1f2520]">
+              {selectedNode.data.name}
+            </h3>
+            {selectedNode.data.score ? (
+              <p className="mt-2 text-[#596153]">
+                Recommendation score {selectedNode.data.score.toFixed(3)}
+              </p>
+            ) : null}
+            <p className="mt-2 text-[#596153]">
+              Drag nodes to untangle the branch and inspect ingredient links.
+            </p>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
     </div>
   );
 }
@@ -146,7 +156,11 @@ function IngredientNode({ data }: NodeProps<Node<IngredientNodeData>>) {
         : "bg-[#c7782b]";
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      whileHover={{ scale: 1.03 }}
+      transition={{ type: "spring", stiffness: 360, damping: 26 }}
       className={`min-w-32 rounded-full border px-3 py-2 text-xs font-semibold shadow-sm ${style}`}
     >
       <Handle type="target" position={Position.Top} className="opacity-0" />
@@ -155,7 +169,7 @@ function IngredientNode({ data }: NodeProps<Node<IngredientNodeData>>) {
         <span>{data.name}</span>
       </div>
       <Handle type="source" position={Position.Bottom} className="opacity-0" />
-    </div>
+    </motion.div>
   );
 }
 
