@@ -111,33 +111,40 @@ export function PantryInputExperience() {
   const mapPoints = useMemo(() => buildMapPoints(analysis), [analysis]);
 
   return (
-    <main className="relative min-h-screen text-[#fff8ec]">
+    <>
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-[#31483c] focus:px-4 focus:py-3 focus:text-sm focus:font-bold focus:text-[#fff9e9]"
+      >
+        Skip to main content
+      </a>
+    <main id="main" tabIndex={-1} className="relative min-h-screen text-[#27342e]">
       <AtlasAtmosphere />
       <div className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-8 px-5 py-6 sm:px-8 lg:px-10">
-        <header className="flex flex-col gap-3 border-b border-white/10 pb-5 sm:flex-row sm:items-end sm:justify-between">
+        <header className="flex flex-col gap-3 border-b border-[#6b8e9b]/25 pb-5 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-sm font-medium uppercase tracking-[0.2em] text-[#ffd6bd]">
+            <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#6b8e9b]">
               Larder Atlas
             </p>
-            <h1 className="mt-2 max-w-2xl text-4xl font-semibold tracking-tight text-[#fff8ec] sm:text-5xl">
+            <h1 className="mt-2 max-w-2xl text-4xl font-semibold tracking-tight text-[#31483c] sm:text-6xl [font-family:var(--font-display)]">
               Map what is on hand. Find what unlocks dinner.
             </h1>
           </div>
-          <p className="max-w-sm text-sm leading-6 text-[#d9c4b7]">
-            Powered by Epicure ingredient embeddings and no-cost template
-            explanations.
+          <p className="max-w-sm text-sm leading-6 text-[#496359]">
+            A soft atlas for turning what you already have into the next useful
+            ingredient.
           </p>
         </header>
 
         <section className="grid gap-6 lg:grid-cols-[0.95fr_1.25fr]">
           <form
             onSubmit={handleSubmit}
-            className="flex flex-col gap-5 rounded-lg border border-white/10 bg-[#0d0b0a]/75 p-5 shadow-2xl shadow-black/30 backdrop-blur-xl"
+            className="flex flex-col gap-5 rounded-lg border border-[#6b8e9b]/25 bg-[#fff9e9]/78 p-5 shadow-2xl shadow-[#6b8e9b]/20 backdrop-blur-xl"
           >
             <div>
               <label
                 htmlFor="pantry"
-                className="text-sm font-semibold text-[#fff8ec]"
+                className="text-sm font-bold text-[#31483c]"
               >
                 What is in your kitchen?
               </label>
@@ -145,7 +152,7 @@ export function PantryInputExperience() {
                 id="pantry"
                 value={pantry}
                 onChange={(event) => setPantry(event.target.value)}
-                className="mt-3 min-h-36 w-full resize-none rounded-md border border-white/10 bg-black/35 p-4 text-base leading-7 text-[#fff8ec] outline-none transition placeholder:text-[#9f8b7f] focus:border-[#faad93] focus:ring-4 focus:ring-[#faad93]/15"
+                className="mt-3 min-h-36 w-full resize-none rounded-md border border-[#8ea889]/40 bg-[#fffdf5]/80 p-4 text-base leading-7 text-[#27342e] outline-none transition placeholder:text-[#8a9a8c] focus:border-[#b9a8d3] focus:ring-4 focus:ring-[#b9a8d3]/20"
                 placeholder="rice, egg, cabbage, soy sauce"
               />
             </div>
@@ -156,7 +163,7 @@ export function PantryInputExperience() {
                   key={sample}
                   type="button"
                   onClick={() => setPantry(sample)}
-                  className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-[#d9c4b7] transition hover:border-[#faad93]/70 hover:text-[#fff8ec]"
+                  className="cursor-pointer rounded-full border border-[#6b8e9b]/25 bg-[#e9f0df]/70 px-3 py-1.5 text-sm text-[#496359] transition hover:border-[#b9a8d3] hover:text-[#31483c] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6b8e9b]"
                 >
                   {sample}
                 </button>
@@ -164,7 +171,7 @@ export function PantryInputExperience() {
             </div>
 
             <div>
-              <p className="text-sm font-semibold text-[#fff8ec]">Goal</p>
+              <p className="text-sm font-bold text-[#31483c]">Goal</p>
               <div className="mt-3 flex flex-wrap gap-2">
                 {pantryGoals.map((item) => {
                   const isSelected = item.id === goal;
@@ -174,11 +181,12 @@ export function PantryInputExperience() {
                       key={item.id}
                       type="button"
                       onClick={() => setGoal(item.id)}
+                      aria-pressed={isSelected}
                       className={[
-                        "rounded-full border px-3 py-1.5 text-sm font-medium transition",
+                        "cursor-pointer rounded-full border px-3 py-1.5 text-sm font-bold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6b8e9b]",
                         isSelected
-                          ? "border-[#faad93] bg-[#faad93] text-[#170d09]"
-                          : "border-white/10 bg-white/5 text-[#d9c4b7] hover:border-[#faad93]/70 hover:text-[#fff8ec]",
+                          ? "border-[#b9a8d3] bg-[#b9a8d3] text-[#252033]"
+                          : "border-[#6b8e9b]/25 bg-[#fffdf5]/65 text-[#496359] hover:border-[#b9a8d3] hover:text-[#31483c]",
                       ].join(" ")}
                     >
                       {item.label}
@@ -191,34 +199,34 @@ export function PantryInputExperience() {
             <button
               type="submit"
               disabled={isLoading}
-              className="inline-flex h-12 items-center justify-center rounded-md bg-[#faad93] px-5 text-sm font-semibold text-[#170d09] transition hover:bg-[#ffc3ad] disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex h-12 cursor-pointer items-center justify-center rounded-md border border-[#31483c]/20 bg-[#31483c] px-5 text-sm font-bold text-[#fff9e9] shadow-lg shadow-[#6b8e9b]/20 transition hover:bg-[#496359] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6b8e9b] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isLoading ? "Mapping pantry..." : "Analyze pantry"}
             </button>
 
             {error ? (
-              <p className="rounded-md bg-[#4a1c14] px-3 py-2 text-sm text-[#ffd8ca]">
+              <p className="rounded-md bg-[#f9d8d4] px-3 py-2 text-sm text-[#7a332d]">
                 {error}
               </p>
             ) : null}
           </form>
 
           <section className="grid gap-5">
-            <article className="rounded-lg border border-white/10 bg-[#0d0b0a]/75 p-5 shadow-2xl shadow-black/30 backdrop-blur-xl">
-              <p className="text-sm font-semibold text-[#ffd6bd]">
+            <article className="rounded-lg border border-[#6b8e9b]/25 bg-[#fff9e9]/78 p-5 shadow-2xl shadow-[#6b8e9b]/20 backdrop-blur-xl">
+              <p className="text-sm font-bold text-[#6b8e9b]">
                 Smartest buy
               </p>
               {topRecommendation ? (
                 <div className="mt-4">
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                    <h2 className="text-3xl font-semibold tracking-tight">
+                    <h2 className="text-4xl font-semibold tracking-tight text-[#31483c] [font-family:var(--font-display)]">
                       {humanize(topRecommendation.ingredient.name)}
                     </h2>
-                    <span className="w-fit rounded-full bg-[#faad93]/20 px-3 py-1 text-sm font-medium text-[#ffd6bd]">
+                    <span className="w-fit rounded-full bg-[#e9d7ef] px-3 py-1 text-sm font-bold text-[#5a4f75]">
                       score {topRecommendation.score.toFixed(3)}
                     </span>
                   </div>
-                  <p className="mt-4 max-w-2xl text-base leading-7 text-[#d9c4b7]">
+                  <p className="mt-4 max-w-2xl text-base leading-7 text-[#496359]">
                     {analysis?.explanation}
                   </p>
                 </div>
@@ -228,32 +236,32 @@ export function PantryInputExperience() {
             </article>
 
             <div className="grid gap-5 xl:grid-cols-2">
-              <article className="rounded-lg border border-white/10 bg-[#0d0b0a]/75 p-5 shadow-2xl shadow-black/30 backdrop-blur-xl">
+              <article className="rounded-lg border border-[#6b8e9b]/25 bg-[#fff9e9]/78 p-5 shadow-2xl shadow-[#6b8e9b]/20 backdrop-blur-xl">
                 <SectionTitle title="Matched pantry" />
                 {matchedNames.length > 0 ? (
                   <div className="mt-4 flex flex-wrap gap-2">
                     {matchedNames.map((name) => (
                       <span
                         key={name}
-                        className="rounded-full bg-[#2f5f5b]/50 px-3 py-1.5 text-sm font-medium text-[#d9efec]"
+                        className="rounded-full bg-[#dcebd2] px-3 py-1.5 text-sm font-bold text-[#31483c]"
                       >
                         {name}
                       </span>
                     ))}
                   </div>
                 ) : (
-                  <p className="mt-4 text-sm text-[#d9c4b7]">
+                  <p className="mt-4 text-sm text-[#496359]">
                     Add ingredients and run the analysis.
                   </p>
                 )}
                 {analysis?.missing.length ? (
-                  <p className="mt-4 text-sm text-[#ffd6bd]">
+                  <p className="mt-4 text-sm text-[#7a5b30]">
                     Not found yet: {analysis.missing.join(", ")}
                   </p>
                 ) : null}
               </article>
 
-              <article className="rounded-lg border border-white/10 bg-[#0d0b0a]/75 p-5 shadow-2xl shadow-black/30 backdrop-blur-xl">
+              <article className="rounded-lg border border-[#6b8e9b]/25 bg-[#fff9e9]/78 p-5 shadow-2xl shadow-[#6b8e9b]/20 backdrop-blur-xl">
                 <SectionTitle title="Pantry shape" />
                 <AffinityList
                   label="Cuisine"
@@ -274,27 +282,19 @@ export function PantryInputExperience() {
           </section>
         </section>
 
-        <section className="grid gap-5 rounded-lg border border-white/10 bg-[#0d0b0a]/70 p-5 shadow-2xl shadow-black/30 backdrop-blur-xl lg:grid-cols-[1.35fr_0.65fr]">
+        <section className="grid gap-5 rounded-lg border border-[#6b8e9b]/25 bg-[#fff9e9]/72 p-5 shadow-2xl shadow-[#6b8e9b]/20 backdrop-blur-xl lg:grid-cols-[1.35fr_0.65fr]">
           <PantryMap points={mapPoints} />
-          <div className="flex flex-col justify-between gap-5">
-            <div>
-              <SectionTitle title="Atlas signal" />
-              <p className="mt-3 text-sm leading-6 text-[#d9c4b7]">
-                Your pantry cluster shows the cooking territory you already
-                occupy. The highlighted buys show nearby moves and wider jumps
-                from that starting point.
-              </p>
-            </div>
-            <div className="rounded-md border border-white/10 bg-white/5 p-4 text-sm leading-6 text-[#d9c4b7]">
-              Pantry items are teal. Recommended buys are amber. When a
-              recommendation lands close to your pantry cluster, it is a small
-              practical move; when it lands farther away, it opens a new
-              direction.
-            </div>
+          <div className="grid content-start gap-3 sm:grid-cols-3 lg:grid-cols-1">
+            <AtlasMetric label="Pantry" value={analysis?.matched.length ?? 0} />
+            <AtlasMetric
+              label="Suggestions"
+              value={analysis?.recommendations.length ?? 0}
+            />
+            <AtlasMetric label="Mapped" value={mapPoints.length} />
           </div>
         </section>
 
-        <section className="rounded-lg border border-white/10 bg-[#0d0b0a]/75 p-5 shadow-2xl shadow-black/30 backdrop-blur-xl">
+        <section className="rounded-lg border border-[#6b8e9b]/25 bg-[#fff9e9]/78 p-5 shadow-2xl shadow-[#6b8e9b]/20 backdrop-blur-xl">
           <SectionTitle title="Top buys" />
           {analysis?.recommendations.length ? (
             <motion.div layout className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
@@ -312,20 +312,20 @@ export function PantryInputExperience() {
                     damping: 28,
                     delay: index * 0.03,
                   }}
-                  className="rounded-md border border-white/10 bg-white/[0.07] p-4 shadow-lg shadow-black/20"
+                  className="rounded-md border border-[#6b8e9b]/20 bg-[#fffdf5]/72 p-4 shadow-lg shadow-[#6b8e9b]/10"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <h3 className="font-semibold">
                       {humanize(recommendation.ingredient.name)}
                     </h3>
-                    <span className="rounded-full bg-[#faad93]/20 px-2 py-1 text-xs font-medium text-[#ffd6bd]">
+                    <span className="rounded-full bg-[#f4edf8] px-2 py-1 text-xs font-bold text-[#5a4f75]">
                       {recommendation.score.toFixed(3)}
                     </span>
                   </div>
-                  <p className="mt-1 text-sm text-[#c8b3a6]">
+                  <p className="mt-1 text-sm text-[#6b8e9b]">
                     {humanize(recommendation.ingredient.primaryCategory)}
                   </p>
-                  <ul className="mt-3 space-y-2 text-sm leading-5 text-[#d9c4b7]">
+                  <ul className="mt-3 space-y-2 text-sm leading-5 text-[#496359]">
                     {recommendation.reasons.map((reason) => (
                       <li key={reason}>{reason}</li>
                     ))}
@@ -335,19 +335,20 @@ export function PantryInputExperience() {
               </AnimatePresence>
             </motion.div>
           ) : (
-            <p className="mt-4 text-sm text-[#d9c4b7]">
+            <p className="mt-4 text-sm text-[#496359]">
               Recommendations will appear here after analysis.
             </p>
           )}
         </section>
       </div>
     </main>
+    </>
   );
 }
 
 function EmptyState({ hasResults }: { hasResults: boolean }) {
   return (
-    <p className="mt-4 text-base leading-7 text-[#d9c4b7]">
+    <p className="mt-4 text-base leading-7 text-[#496359]">
       {hasResults
         ? "No recommendation yet. Try adding a few more everyday ingredients."
         : "Enter a handful of ingredients to get the first useful addition."}
@@ -356,7 +357,20 @@ function EmptyState({ hasResults }: { hasResults: boolean }) {
 }
 
 function SectionTitle({ title }: { title: string }) {
-  return <h2 className="text-sm font-semibold text-[#ffd6bd]">{title}</h2>;
+  return <h2 className="text-sm font-bold text-[#6b8e9b]">{title}</h2>;
+}
+
+function AtlasMetric({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-md border border-[#b9a8d3]/30 bg-[#f4edf8]/65 p-4">
+      <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#8f7899]">
+        {label}
+      </p>
+      <p className="mt-2 text-3xl font-semibold text-[#31483c] [font-family:var(--font-display)]">
+        {value}
+      </p>
+    </div>
+  );
 }
 
 function AffinityList({
@@ -370,7 +384,7 @@ function AffinityList({
 
   return (
     <div className="mt-4">
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#a28b80]">
+      <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#8ea889]">
         {label}
       </p>
       {visibleItems.length ? (
@@ -381,12 +395,12 @@ function AffinityList({
               className="flex items-center justify-between gap-3 text-sm"
             >
               <span>{humanize(item.name)}</span>
-              <span className="text-[#ffd6bd]">{Math.round(item.score * 100)}%</span>
+              <span className="font-bold text-[#b07885]">{Math.round(item.score * 100)}%</span>
             </div>
           ))}
         </div>
       ) : (
-        <p className="mt-2 text-sm text-[#d9c4b7]">Waiting for pantry input.</p>
+        <p className="mt-2 text-sm text-[#496359]">Waiting for pantry input.</p>
       )}
     </div>
   );

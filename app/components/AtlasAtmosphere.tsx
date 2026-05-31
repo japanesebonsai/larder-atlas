@@ -15,11 +15,11 @@ type Star = {
 };
 
 const orbSize = 1180;
-const orbColor = "#faad93";
-const orbPositionX = 80;
-const orbPositionY = -240;
-const starColor = "#fff8ec";
-const starColor2 = "#ffd6bd";
+const orbColor = "#e7a7c5";
+const orbPositionX = 110;
+const orbPositionY = -260;
+const starColor = "#fff5bf";
+const starColor2 = "#b9a8d3";
 const starBaseSize = 1.15;
 const starFuzziness = 0.2;
 const starCount = 150;
@@ -53,6 +53,7 @@ export function AtlasAtmosphere() {
     let mouseY = 0;
     let targetX = 0;
     let targetY = 0;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     function resetStar(star: Star) {
       const orbX = width / 2 + orbPositionX;
@@ -136,8 +137,14 @@ export function AtlasAtmosphere() {
       drawingContext.clearRect(0, 0, width, height);
 
       for (const star of stars) {
-        updateStar(star);
+        if (!reduceMotion) {
+          updateStar(star);
+        }
         drawStar(star);
+      }
+
+      if (reduceMotion) {
+        return;
       }
 
       targetX += (mouseX - targetX) * 0.1;
@@ -156,12 +163,16 @@ export function AtlasAtmosphere() {
 
     resize();
     observer.observe(containerElement);
-    window.addEventListener("mousemove", onMouseMove);
+    if (!reduceMotion) {
+      window.addEventListener("mousemove", onMouseMove);
+    }
     animate();
 
     return () => {
       observer.disconnect();
-      window.removeEventListener("mousemove", onMouseMove);
+      if (!reduceMotion) {
+        window.removeEventListener("mousemove", onMouseMove);
+      }
       cancelAnimationFrame(animationFrameId);
     };
   }, []);
@@ -169,7 +180,7 @@ export function AtlasAtmosphere() {
   return (
     <div
       ref={containerRef}
-      className="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-[#050505]"
+      className="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-[#edf3df]"
     >
       <div
         ref={orbRef}
@@ -186,7 +197,8 @@ export function AtlasAtmosphere() {
         ref={canvasRef}
         className="absolute left-0 top-0 h-full w-full will-change-transform"
       />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(250,173,147,0.12),rgba(5,5,5,0.2)_36%,rgba(5,5,5,0.96)_100%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_28%_20%,rgba(185,168,211,0.38),transparent_34%),radial-gradient(circle_at_70%_18%,rgba(233,167,178,0.34),transparent_36%),linear-gradient(180deg,rgba(237,243,223,0.28),rgba(107,142,155,0.22)_55%,rgba(75,103,94,0.22))]" />
+      <div className="absolute inset-0 bg-[linear-gradient(115deg,rgba(255,255,255,0.22),transparent_32%,rgba(255,245,191,0.18)_54%,transparent_72%)]" />
     </div>
   );
 }

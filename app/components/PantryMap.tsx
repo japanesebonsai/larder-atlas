@@ -54,13 +54,14 @@ export function PantryMap({ points }: PantryMapProps) {
   }, [graph, setEdges, setNodes]);
 
   return (
-    <div className="relative min-h-[360px] overflow-hidden rounded-lg border border-white/10 bg-black/35">
-      <div className="absolute left-4 top-4 z-10 rounded-full border border-white/10 bg-black/45 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#ffd6bd] shadow-sm backdrop-blur-md">
+    <div className="relative min-h-[360px] overflow-hidden rounded-lg border border-[#6b8e9b]/25 bg-[#dfead8]/55">
+      <div className="absolute left-4 top-4 z-10 rounded-full border border-[#6b8e9b]/25 bg-[#fff9e9]/80 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-[#6b8e9b] shadow-sm backdrop-blur-md">
         Interactive Epicure atlas
       </div>
 
       {points.length ? (
         <ReactFlow
+          aria-label="Ingredient relationship atlas"
           nodes={nodes}
           edges={edges}
           nodeTypes={nodeTypes}
@@ -73,32 +74,32 @@ export function PantryMap({ points }: PantryMapProps) {
           maxZoom={1.7}
           proOptions={{ hideAttribution: true }}
         >
-          <Background color="#5e473d" gap={26} />
+          <Background color="#9eb7ad" gap={26} />
           <MiniMap
             nodeColor={(node) =>
               node.data.kind === "pantry"
                 ? "#2f5f5b"
                 : node.data.kind === "bridge"
-                  ? "#ffd6bd"
-                  : "#faad93"
+                  ? "#b9a8d3"
+                  : "#e9a7b2"
             }
-            maskColor="rgba(5, 5, 5, 0.74)"
+            maskColor="rgba(255, 249, 233, 0.62)"
             pannable
             zoomable
           />
           <Controls position="bottom-right" />
         </ReactFlow>
       ) : (
-        <div className="absolute inset-0 z-10 flex items-center justify-center px-8 text-center text-sm leading-6 text-[#d9c4b7]">
+        <div className="absolute inset-0 z-10 flex items-center justify-center px-8 text-center text-sm leading-6 text-[#496359]">
           Run a pantry analysis to place your ingredients and best buys on the
           Epicure map.
         </div>
       )}
 
-      <div className="absolute bottom-4 left-4 z-10 flex gap-2 text-xs text-[#d9c4b7]">
+      <div className="absolute bottom-4 left-4 z-10 flex gap-2 text-xs text-[#496359]">
         <LegendDot className="bg-[#2f5f5b]" label="pantry" />
-        <LegendDot className="bg-[#7f6b42]" label="branch" />
-        <LegendDot className="bg-[#c7782b]" label="recommended" />
+        <LegendDot className="bg-[#b9a8d3]" label="branch" />
+        <LegendDot className="bg-[#e9a7b2]" label="recommended" />
       </div>
 
       <AnimatePresence>
@@ -109,22 +110,19 @@ export function PantryMap({ points }: PantryMapProps) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.98 }}
             transition={{ type: "spring", stiffness: 380, damping: 30 }}
-            className="absolute left-4 right-4 top-16 z-20 rounded-lg border border-white/10 bg-[#0d0b0a]/90 p-3 text-sm text-[#fff8ec] shadow-2xl shadow-black/40 backdrop-blur-xl sm:left-auto sm:top-4 sm:w-56"
+            className="absolute left-4 right-4 top-16 z-20 rounded-lg border border-[#6b8e9b]/25 bg-[#fff9e9]/92 p-3 text-sm text-[#27342e] shadow-2xl shadow-[#6b8e9b]/20 backdrop-blur-xl sm:left-auto sm:top-4 sm:w-56"
           >
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#ffd6bd]">
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#6b8e9b]">
               {selectedNode.data.kind}
             </p>
-            <h3 className="mt-1 font-semibold text-[#fff8ec]">
+            <h3 className="mt-1 font-semibold text-[#31483c] [font-family:var(--font-display)]">
               {selectedNode.data.name}
             </h3>
             {selectedNode.data.score ? (
-              <p className="mt-2 text-[#d9c4b7]">
+              <p className="mt-2 text-[#496359]">
                 Recommendation score {selectedNode.data.score.toFixed(3)}
               </p>
             ) : null}
-          <p className="mt-2 text-[#d9c4b7]">
-              Drag nodes to untangle the branch and inspect ingredient links.
-            </p>
           </motion.div>
         ) : null}
       </AnimatePresence>
@@ -144,16 +142,16 @@ function LegendDot({ className, label }: { className: string; label: string }) {
 function IngredientNode({ data }: NodeProps<Node<IngredientNodeData>>) {
   const style =
     data.kind === "pantry"
-      ? "border-[#63b2a9] bg-[#123b38] text-[#d9efec]"
+      ? "border-[#4d8d86] bg-[#d9efec] text-[#163f3b]"
       : data.kind === "bridge"
-        ? "border-[#ffd6bd] bg-[#3a221a] text-[#fff8ec]"
-        : "border-[#faad93] bg-[#4a2319] text-[#ffd6bd]";
+        ? "border-[#b9a8d3] bg-[#f4edf8] text-[#4f526d]"
+        : "border-[#e9a7b2] bg-[#fbe7e7] text-[#7a4651]";
   const dot =
     data.kind === "pantry"
       ? "bg-[#2f5f5b]"
       : data.kind === "bridge"
-        ? "bg-[#ffd6bd]"
-        : "bg-[#faad93]";
+        ? "bg-[#b9a8d3]"
+        : "bg-[#e9a7b2]";
 
   return (
     <motion.div
@@ -203,12 +201,12 @@ function buildGraph(points: PantryMapPoint[]): {
       id: `${pointId(nearest)}-${pointId(recommendation)}`,
       source: pointId(nearest),
       target: pointId(recommendation),
-      label: "closest pantry link",
+      label: "nearest",
       type: "smoothstep",
-        markerEnd: { type: MarkerType.ArrowClosed, color: "#faad93" },
-        style: { stroke: "#faad93", strokeWidth: 2.4 },
-        labelStyle: { fill: "#ffd6bd", fontSize: 11, fontWeight: 600 },
-        labelBgStyle: { fill: "#0d0b0a", fillOpacity: 0.82 },
+      markerEnd: { type: MarkerType.ArrowClosed, color: "#b07885" },
+      style: { stroke: "#b07885", strokeWidth: 2.4 },
+      labelStyle: { fill: "#7a4651", fontSize: 11, fontWeight: 700 },
+      labelBgStyle: { fill: "#fff9e9", fillOpacity: 0.86 },
     });
   }
 
@@ -221,7 +219,7 @@ function buildGraph(points: PantryMapPoint[]): {
         source: bridge.id,
         target: pointId(point),
         type: "smoothstep",
-        style: { stroke: "#ffd6bd", strokeDasharray: "5 5", strokeWidth: 1.7 },
+        style: { stroke: "#6b8e9b", strokeDasharray: "5 5", strokeWidth: 1.7 },
       })),
     );
   }
