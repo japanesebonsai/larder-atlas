@@ -1,60 +1,192 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
+import { useEffect, useRef } from "react";
+
+type Star = {
+  x: number;
+  y: number;
+  size: number;
+  alpha: number;
+  speedX: number;
+  speedY: number;
+  flickerSpeed: number;
+  flickerAngle: number;
+  useSecondaryColor: boolean;
+};
+
+const orbSize = 1180;
+const orbColor = "#faad93";
+const orbPositionX = 80;
+const orbPositionY = -240;
+const starColor = "#fff8ec";
+const starColor2 = "#ffd6bd";
+const starBaseSize = 1.15;
+const starFuzziness = 0.2;
+const starCount = 150;
 
 export function AtlasAtmosphere() {
-  const reduceMotion = useReducedMotion();
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const orbRef = useRef<HTMLDivElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const orb = orbRef.current;
+    const container = containerRef.current;
+
+    if (!canvas || !orb || !container) return;
+
+    const context = canvas.getContext("2d");
+
+    if (!context) return;
+
+    const canvasElement = canvas;
+    const orbElement = orb;
+    const containerElement = container;
+    const drawingContext = context;
+
+    let width = containerElement.clientWidth;
+    let height = containerElement.clientHeight;
+    let stars: Star[] = [];
+    let animationFrameId = 0;
+    let mouseX = 0;
+    let mouseY = 0;
+    let targetX = 0;
+    let targetY = 0;
+
+    function resetStar(star: Star) {
+      const orbX = width / 2 + orbPositionX;
+      const orbY = orbPositionY + orbSize / 2;
+      const angle = Math.random() * Math.PI * 2;
+      const radius = Math.sqrt(Math.random()) * (orbSize / 2);
+
+      star.x = orbX + Math.cos(angle) * radius;
+      star.y = orbY + Math.sin(angle) * radius;
+      star.size = Math.random() * starBaseSize + 0.5;
+      star.alpha = 0;
+      star.useSecondaryColor = Math.random() > 0.5;
+      star.speedX = (Math.random() - 0.5) * 0.05;
+      star.speedY = (Math.random() - 0.5) * 0.05;
+      star.flickerSpeed = Math.random() * 0.02 + 0.005;
+      star.flickerAngle = Math.random() * Math.PI * 2;
+    }
+
+    function createStar(): Star {
+      const star: Star = {
+        x: 0,
+        y: 0,
+        size: 1,
+        alpha: 0,
+        speedX: 0,
+        speedY: 0,
+        flickerSpeed: 0,
+        flickerAngle: 0,
+        useSecondaryColor: false,
+      };
+
+      resetStar(star);
+      return star;
+    }
+
+    function initStars() {
+      stars = Array.from({ length: starCount }, createStar);
+    }
+
+    function resize() {
+      const rect = containerElement.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+
+      width = rect.width;
+      height = rect.height;
+      canvasElement.width = width * dpr;
+      canvasElement.height = height * dpr;
+      canvasElement.style.width = `${width}px`;
+      canvasElement.style.height = `${height}px`;
+      drawingContext.setTransform(dpr, 0, 0, dpr, 0, 0);
+      initStars();
+    }
+
+    function updateStar(star: Star) {
+      star.x += star.speedX;
+      star.y += star.speedY;
+      star.flickerAngle += star.flickerSpeed;
+      star.alpha = (Math.sin(star.flickerAngle) + 1) / 2;
+
+      const orbX = width / 2 + orbPositionX;
+      const orbY = orbPositionY + orbSize / 2;
+      const distance = Math.hypot(star.x - orbX, star.y - orbY);
+
+      if (distance > orbSize / 2 + 100) {
+        resetStar(star);
+      }
+    }
+
+    function drawStar(star: Star) {
+      drawingContext.save();
+      drawingContext.globalAlpha = star.alpha * 0.9;
+      drawingContext.fillStyle = star.useSecondaryColor ? starColor2 : starColor;
+      drawingContext.filter = starFuzziness > 0 ? `blur(${starFuzziness}px)` : "none";
+      drawingContext.beginPath();
+      drawingContext.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+      drawingContext.fill();
+      drawingContext.restore();
+    }
+
+    function animate() {
+      drawingContext.clearRect(0, 0, width, height);
+
+      for (const star of stars) {
+        updateStar(star);
+        drawStar(star);
+      }
+
+      targetX += (mouseX - targetX) * 0.1;
+      targetY += (mouseY - targetY) * 0.1;
+      orbElement.style.transform = `translate(calc(-50% + ${targetX * 0.05}px), ${targetY * 0.05}px)`;
+      canvasElement.style.transform = `translate(${targetX * 0.02}px, ${targetY * 0.02}px)`;
+      animationFrameId = requestAnimationFrame(animate);
+    }
+
+    function onMouseMove(event: MouseEvent) {
+      mouseX = event.clientX - window.innerWidth / 2;
+      mouseY = event.clientY - window.innerHeight / 2;
+    }
+
+    const observer = new ResizeObserver(resize);
+
+    resize();
+    observer.observe(containerElement);
+    window.addEventListener("mousemove", onMouseMove);
+    animate();
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("mousemove", onMouseMove);
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, []);
 
   return (
-    <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-[#f8f6f0]">
-      <motion.svg
-        aria-hidden="true"
-        className="absolute inset-0 h-full w-full opacity-70"
-        viewBox="0 0 1200 800"
-        preserveAspectRatio="xMidYMid slice"
-        initial={false}
-        animate={
-          reduceMotion
-            ? undefined
-            : {
-                x: [0, -16, 0],
-                y: [0, 10, 0],
-              }
-        }
-        transition={{
-          duration: 22,
-          repeat: Infinity,
-          ease: "easeInOut",
+    <div
+      ref={containerRef}
+      className="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-[#050505]"
+    >
+      <div
+        ref={orbRef}
+        className="absolute left-1/2 rounded-full opacity-60 blur-[80px] will-change-transform"
+        style={{
+          top: orbPositionY,
+          width: orbSize,
+          height: orbSize,
+          background: `radial-gradient(circle, ${orbColor} 0%, transparent 70%)`,
+          transform: `translateX(-50%) translateX(${orbPositionX}px)`,
         }}
-      >
-        <defs>
-          <linearGradient id="atlas-line" x1="0%" x2="100%" y1="0%" y2="100%">
-            <stop offset="0%" stopColor="#d9dfcf" />
-            <stop offset="48%" stopColor="#cad6bd" />
-            <stop offset="100%" stopColor="#eee4cc" />
-          </linearGradient>
-        </defs>
-        <path
-          d="M-80 140 C 120 40, 250 230, 430 120 S 760 120, 920 220 1150 260, 1280 150"
-          fill="none"
-          stroke="url(#atlas-line)"
-          strokeWidth="2"
-        />
-        <path
-          d="M-120 380 C 90 300, 240 480, 420 360 S 720 300, 910 450 1130 530, 1310 410"
-          fill="none"
-          stroke="url(#atlas-line)"
-          strokeWidth="1.5"
-        />
-        <path
-          d="M-90 620 C 130 540, 280 680, 470 560 S 760 540, 960 630 1160 720, 1300 600"
-          fill="none"
-          stroke="url(#atlas-line)"
-          strokeWidth="2"
-        />
-      </motion.svg>
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(38,52,33,0.045)_1px,transparent_1px),linear-gradient(90deg,rgba(38,52,33,0.04)_1px,transparent_1px)] bg-[size:44px_44px]" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(255,253,248,0.82),rgba(248,246,240,0.4)_48%,rgba(248,246,240,0.92)_100%)]" />
+      />
+      <canvas
+        ref={canvasRef}
+        className="absolute left-0 top-0 h-full w-full will-change-transform"
+      />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(250,173,147,0.12),rgba(5,5,5,0.2)_36%,rgba(5,5,5,0.96)_100%)]" />
     </div>
   );
 }

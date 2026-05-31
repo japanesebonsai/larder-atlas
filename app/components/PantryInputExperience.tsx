@@ -111,33 +111,33 @@ export function PantryInputExperience() {
   const mapPoints = useMemo(() => buildMapPoints(analysis), [analysis]);
 
   return (
-    <main className="relative min-h-screen text-[#1f2520]">
+    <main className="relative min-h-screen text-[#fff8ec]">
       <AtlasAtmosphere />
       <div className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-8 px-5 py-6 sm:px-8 lg:px-10">
-        <header className="flex flex-col gap-3 border-b border-[#ded8c8] pb-5 sm:flex-row sm:items-end sm:justify-between">
+        <header className="flex flex-col gap-3 border-b border-white/10 pb-5 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-sm font-medium uppercase tracking-[0.2em] text-[#6d765f]">
+            <p className="text-sm font-medium uppercase tracking-[0.2em] text-[#ffd6bd]">
               Larder Atlas
             </p>
-            <h1 className="mt-2 max-w-2xl text-4xl font-semibold tracking-tight text-[#182019] sm:text-5xl">
+            <h1 className="mt-2 max-w-2xl text-4xl font-semibold tracking-tight text-[#fff8ec] sm:text-5xl">
               Map what is on hand. Find what unlocks dinner.
             </h1>
           </div>
-          <p className="max-w-sm text-sm leading-6 text-[#596153]">
+          <p className="max-w-sm text-sm leading-6 text-[#d9c4b7]">
             Powered by Epicure ingredient embeddings and no-cost template
-            explanations. AI narrator comes later.
+            explanations.
           </p>
         </header>
 
         <section className="grid gap-6 lg:grid-cols-[0.95fr_1.25fr]">
           <form
             onSubmit={handleSubmit}
-            className="flex flex-col gap-5 rounded-lg border border-[#ded8c8] bg-[#fffdf8] p-5 shadow-sm"
+            className="flex flex-col gap-5 rounded-lg border border-white/10 bg-[#0d0b0a]/75 p-5 shadow-2xl shadow-black/30 backdrop-blur-xl"
           >
             <div>
               <label
                 htmlFor="pantry"
-                className="text-sm font-semibold text-[#2e372d]"
+                className="text-sm font-semibold text-[#fff8ec]"
               >
                 What is in your kitchen?
               </label>
@@ -145,7 +145,7 @@ export function PantryInputExperience() {
                 id="pantry"
                 value={pantry}
                 onChange={(event) => setPantry(event.target.value)}
-                className="mt-3 min-h-36 w-full resize-none rounded-md border border-[#d8d0be] bg-white p-4 text-base leading-7 outline-none transition focus:border-[#62724f] focus:ring-4 focus:ring-[#62724f]/10"
+                className="mt-3 min-h-36 w-full resize-none rounded-md border border-white/10 bg-black/35 p-4 text-base leading-7 text-[#fff8ec] outline-none transition placeholder:text-[#9f8b7f] focus:border-[#faad93] focus:ring-4 focus:ring-[#faad93]/15"
                 placeholder="rice, egg, cabbage, soy sauce"
               />
             </div>
@@ -156,7 +156,7 @@ export function PantryInputExperience() {
                   key={sample}
                   type="button"
                   onClick={() => setPantry(sample)}
-                  className="rounded-full border border-[#d8d0be] px-3 py-1.5 text-sm text-[#596153] transition hover:border-[#62724f] hover:text-[#2e372d]"
+                  className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-[#d9c4b7] transition hover:border-[#faad93]/70 hover:text-[#fff8ec]"
                 >
                   {sample}
                 </button>
@@ -164,7 +164,7 @@ export function PantryInputExperience() {
             </div>
 
             <div>
-              <p className="text-sm font-semibold text-[#2e372d]">Goal</p>
+              <p className="text-sm font-semibold text-[#fff8ec]">Goal</p>
               <div className="mt-3 flex flex-wrap gap-2">
                 {pantryGoals.map((item) => {
                   const isSelected = item.id === goal;
@@ -177,8 +177,8 @@ export function PantryInputExperience() {
                       className={[
                         "rounded-full border px-3 py-1.5 text-sm font-medium transition",
                         isSelected
-                          ? "border-[#263421] bg-[#263421] text-white"
-                          : "border-[#d8d0be] text-[#596153] hover:border-[#62724f] hover:text-[#2e372d]",
+                          ? "border-[#faad93] bg-[#faad93] text-[#170d09]"
+                          : "border-white/10 bg-white/5 text-[#d9c4b7] hover:border-[#faad93]/70 hover:text-[#fff8ec]",
                       ].join(" ")}
                     >
                       {item.label}
@@ -191,21 +191,21 @@ export function PantryInputExperience() {
             <button
               type="submit"
               disabled={isLoading}
-              className="inline-flex h-12 items-center justify-center rounded-md bg-[#263421] px-5 text-sm font-semibold text-white transition hover:bg-[#34452d] disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex h-12 items-center justify-center rounded-md bg-[#faad93] px-5 text-sm font-semibold text-[#170d09] transition hover:bg-[#ffc3ad] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isLoading ? "Mapping pantry..." : "Analyze pantry"}
             </button>
 
             {error ? (
-              <p className="rounded-md bg-[#f8e8df] px-3 py-2 text-sm text-[#8a341f]">
+              <p className="rounded-md bg-[#4a1c14] px-3 py-2 text-sm text-[#ffd8ca]">
                 {error}
               </p>
             ) : null}
           </form>
 
           <section className="grid gap-5">
-            <article className="rounded-lg border border-[#ded8c8] bg-[#fffdf8] p-5 shadow-sm">
-              <p className="text-sm font-semibold text-[#6d765f]">
+            <article className="rounded-lg border border-white/10 bg-[#0d0b0a]/75 p-5 shadow-2xl shadow-black/30 backdrop-blur-xl">
+              <p className="text-sm font-semibold text-[#ffd6bd]">
                 Smartest buy
               </p>
               {topRecommendation ? (
@@ -214,11 +214,11 @@ export function PantryInputExperience() {
                     <h2 className="text-3xl font-semibold tracking-tight">
                       {humanize(topRecommendation.ingredient.name)}
                     </h2>
-                    <span className="w-fit rounded-full bg-[#e4ead7] px-3 py-1 text-sm font-medium text-[#3f5133]">
+                    <span className="w-fit rounded-full bg-[#faad93]/20 px-3 py-1 text-sm font-medium text-[#ffd6bd]">
                       score {topRecommendation.score.toFixed(3)}
                     </span>
                   </div>
-                  <p className="mt-4 max-w-2xl text-base leading-7 text-[#4f584b]">
+                  <p className="mt-4 max-w-2xl text-base leading-7 text-[#d9c4b7]">
                     {analysis?.explanation}
                   </p>
                 </div>
@@ -228,32 +228,32 @@ export function PantryInputExperience() {
             </article>
 
             <div className="grid gap-5 xl:grid-cols-2">
-              <article className="rounded-lg border border-[#ded8c8] bg-[#fffdf8] p-5 shadow-sm">
+              <article className="rounded-lg border border-white/10 bg-[#0d0b0a]/75 p-5 shadow-2xl shadow-black/30 backdrop-blur-xl">
                 <SectionTitle title="Matched pantry" />
                 {matchedNames.length > 0 ? (
                   <div className="mt-4 flex flex-wrap gap-2">
                     {matchedNames.map((name) => (
                       <span
                         key={name}
-                        className="rounded-full bg-[#edf0e5] px-3 py-1.5 text-sm font-medium text-[#384632]"
+                        className="rounded-full bg-[#2f5f5b]/50 px-3 py-1.5 text-sm font-medium text-[#d9efec]"
                       >
                         {name}
                       </span>
                     ))}
                   </div>
                 ) : (
-                  <p className="mt-4 text-sm text-[#6d7568]">
+                  <p className="mt-4 text-sm text-[#d9c4b7]">
                     Add ingredients and run the analysis.
                   </p>
                 )}
                 {analysis?.missing.length ? (
-                  <p className="mt-4 text-sm text-[#9a5a32]">
+                  <p className="mt-4 text-sm text-[#ffd6bd]">
                     Not found yet: {analysis.missing.join(", ")}
                   </p>
                 ) : null}
               </article>
 
-              <article className="rounded-lg border border-[#ded8c8] bg-[#fffdf8] p-5 shadow-sm">
+              <article className="rounded-lg border border-white/10 bg-[#0d0b0a]/75 p-5 shadow-2xl shadow-black/30 backdrop-blur-xl">
                 <SectionTitle title="Pantry shape" />
                 <AffinityList
                   label="Cuisine"
@@ -274,18 +274,18 @@ export function PantryInputExperience() {
           </section>
         </section>
 
-        <section className="grid gap-5 rounded-lg border border-[#d7dfcb] bg-[#fbfdf7] p-5 shadow-sm lg:grid-cols-[1.35fr_0.65fr]">
+        <section className="grid gap-5 rounded-lg border border-white/10 bg-[#0d0b0a]/70 p-5 shadow-2xl shadow-black/30 backdrop-blur-xl lg:grid-cols-[1.35fr_0.65fr]">
           <PantryMap points={mapPoints} />
           <div className="flex flex-col justify-between gap-5">
             <div>
               <SectionTitle title="Atlas signal" />
-              <p className="mt-3 text-sm leading-6 text-[#596153]">
+              <p className="mt-3 text-sm leading-6 text-[#d9c4b7]">
                 Your pantry cluster shows the cooking territory you already
                 occupy. The highlighted buys show nearby moves and wider jumps
                 from that starting point.
               </p>
             </div>
-            <div className="rounded-md border border-[#d7dfcb] bg-white p-4 text-sm leading-6 text-[#4f584b]">
+            <div className="rounded-md border border-white/10 bg-white/5 p-4 text-sm leading-6 text-[#d9c4b7]">
               Pantry items are teal. Recommended buys are amber. When a
               recommendation lands close to your pantry cluster, it is a small
               practical move; when it lands farther away, it opens a new
@@ -294,7 +294,7 @@ export function PantryInputExperience() {
           </div>
         </section>
 
-        <section className="rounded-lg border border-[#ded8c8] bg-[#fffdf8] p-5 shadow-sm">
+        <section className="rounded-lg border border-white/10 bg-[#0d0b0a]/75 p-5 shadow-2xl shadow-black/30 backdrop-blur-xl">
           <SectionTitle title="Top buys" />
           {analysis?.recommendations.length ? (
             <motion.div layout className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
@@ -312,20 +312,20 @@ export function PantryInputExperience() {
                     damping: 28,
                     delay: index * 0.03,
                   }}
-                  className="rounded-md border border-[#e3ddcf] bg-white p-4"
+                  className="rounded-md border border-white/10 bg-white/[0.07] p-4 shadow-lg shadow-black/20"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <h3 className="font-semibold">
                       {humanize(recommendation.ingredient.name)}
                     </h3>
-                    <span className="rounded-full bg-[#f1eee4] px-2 py-1 text-xs font-medium text-[#596153]">
+                    <span className="rounded-full bg-[#faad93]/20 px-2 py-1 text-xs font-medium text-[#ffd6bd]">
                       {recommendation.score.toFixed(3)}
                     </span>
                   </div>
-                  <p className="mt-1 text-sm text-[#6d7568]">
+                  <p className="mt-1 text-sm text-[#c8b3a6]">
                     {humanize(recommendation.ingredient.primaryCategory)}
                   </p>
-                  <ul className="mt-3 space-y-2 text-sm leading-5 text-[#4f584b]">
+                  <ul className="mt-3 space-y-2 text-sm leading-5 text-[#d9c4b7]">
                     {recommendation.reasons.map((reason) => (
                       <li key={reason}>{reason}</li>
                     ))}
@@ -335,7 +335,7 @@ export function PantryInputExperience() {
               </AnimatePresence>
             </motion.div>
           ) : (
-            <p className="mt-4 text-sm text-[#6d7568]">
+            <p className="mt-4 text-sm text-[#d9c4b7]">
               Recommendations will appear here after analysis.
             </p>
           )}
@@ -347,7 +347,7 @@ export function PantryInputExperience() {
 
 function EmptyState({ hasResults }: { hasResults: boolean }) {
   return (
-    <p className="mt-4 text-base leading-7 text-[#6d7568]">
+    <p className="mt-4 text-base leading-7 text-[#d9c4b7]">
       {hasResults
         ? "No recommendation yet. Try adding a few more everyday ingredients."
         : "Enter a handful of ingredients to get the first useful addition."}
@@ -356,7 +356,7 @@ function EmptyState({ hasResults }: { hasResults: boolean }) {
 }
 
 function SectionTitle({ title }: { title: string }) {
-  return <h2 className="text-sm font-semibold text-[#6d765f]">{title}</h2>;
+  return <h2 className="text-sm font-semibold text-[#ffd6bd]">{title}</h2>;
 }
 
 function AffinityList({
@@ -370,7 +370,7 @@ function AffinityList({
 
   return (
     <div className="mt-4">
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8c917f]">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#a28b80]">
         {label}
       </p>
       {visibleItems.length ? (
@@ -381,12 +381,12 @@ function AffinityList({
               className="flex items-center justify-between gap-3 text-sm"
             >
               <span>{humanize(item.name)}</span>
-              <span className="text-[#6d7568]">{Math.round(item.score * 100)}%</span>
+              <span className="text-[#ffd6bd]">{Math.round(item.score * 100)}%</span>
             </div>
           ))}
         </div>
       ) : (
-        <p className="mt-2 text-sm text-[#6d7568]">Waiting for pantry input.</p>
+        <p className="mt-2 text-sm text-[#d9c4b7]">Waiting for pantry input.</p>
       )}
     </div>
   );
