@@ -4,6 +4,7 @@ export { buildTemplateExplanation } from "./template-explanation";
 export type {
   MatchedIngredient,
   PantryAnalysis,
+  PantryGoal,
   PantryInput,
   PantryRecommendation,
 } from "./types";

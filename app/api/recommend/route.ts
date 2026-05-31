@@ -8,6 +8,7 @@ export async function POST(request: Request) {
     const analysis = await analyzePantry({
       pantry: body.pantry,
       limit: body.limit,
+      goal: body.goal,
     });
 
     return NextResponse.json({
