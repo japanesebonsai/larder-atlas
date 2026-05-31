@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { FormEvent, useMemo, useState } from "react";
+import { AtlasAtmosphere } from "./AtlasAtmosphere";
 import { PantryMap, type PantryMapPoint } from "./PantryMap";
 
 type PublicIngredient = {
@@ -110,7 +111,8 @@ export function PantryInputExperience() {
   const mapPoints = useMemo(() => buildMapPoints(analysis), [analysis]);
 
   return (
-    <main className="min-h-screen bg-[#f8f6f0] text-[#1f2520]">
+    <main className="relative min-h-screen text-[#1f2520]">
+      <AtlasAtmosphere />
       <div className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-8 px-5 py-6 sm:px-8 lg:px-10">
         <header className="flex flex-col gap-3 border-b border-[#ded8c8] pb-5 sm:flex-row sm:items-end sm:justify-between">
           <div>
