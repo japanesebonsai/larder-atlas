@@ -54,8 +54,8 @@ export function PantryMap({ points }: PantryMapProps) {
   }, [graph, setEdges, setNodes]);
 
   return (
-    <div className="relative min-h-[360px] overflow-hidden rounded-lg border border-[#6b8e9b]/25 bg-[#dfead8]/55">
-      <div className="absolute left-4 top-4 z-10 rounded-full border border-[#6b8e9b]/25 bg-[#fff9e9]/80 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-[#6b8e9b] shadow-sm backdrop-blur-md">
+    <div className="relative min-h-[430px] overflow-hidden border border-[#151515]/15 bg-[#fffaf0]/74 shadow-[8px_8px_0_rgba(21,21,21,0.1)]">
+      <div className="absolute left-4 top-4 z-10 rounded-full border border-[#151515]/15 bg-white/82 px-3 py-1 text-xs font-bold uppercase text-[#151515]/64 shadow-sm backdrop-blur-md">
         Interactive Epicure atlas
       </div>
 
@@ -74,32 +74,32 @@ export function PantryMap({ points }: PantryMapProps) {
           maxZoom={1.7}
           proOptions={{ hideAttribution: true }}
         >
-          <Background color="#9eb7ad" gap={26} />
+          <Background color="#151515" gap={28} />
           <MiniMap
             nodeColor={(node) =>
               node.data.kind === "pantry"
-                ? "#2f5f5b"
+                ? "#151515"
                 : node.data.kind === "bridge"
-                  ? "#b9a8d3"
-                  : "#e9a7b2"
+                  ? "#6f9c93"
+                  : "#ec4899"
             }
-            maskColor="rgba(255, 249, 233, 0.62)"
+            maskColor="rgba(255, 250, 240, 0.68)"
             pannable
             zoomable
           />
           <Controls position="bottom-right" />
         </ReactFlow>
       ) : (
-        <div className="absolute inset-0 z-10 flex items-center justify-center px-8 text-center text-sm leading-6 text-[#496359]">
+        <div className="absolute inset-0 z-10 flex items-center justify-center px-8 text-center text-sm leading-6 text-[#4b4b4b]">
           Run a pantry analysis to place your ingredients and best buys on the
           Epicure map.
         </div>
       )}
 
-      <div className="absolute bottom-4 left-4 z-10 flex gap-2 text-xs text-[#496359]">
-        <LegendDot className="bg-[#2f5f5b]" label="pantry" />
-        <LegendDot className="bg-[#b9a8d3]" label="branch" />
-        <LegendDot className="bg-[#e9a7b2]" label="recommended" />
+      <div className="absolute bottom-4 left-4 z-10 flex gap-2 text-xs text-[#3f3f3f]">
+        <LegendDot className="bg-[#151515]" label="pantry" />
+        <LegendDot className="bg-[#6f9c93]" label="branch" />
+        <LegendDot className="bg-[#ec4899]" label="recommended" />
       </div>
 
       <AnimatePresence>
@@ -110,16 +110,16 @@ export function PantryMap({ points }: PantryMapProps) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.98 }}
             transition={{ type: "spring", stiffness: 380, damping: 30 }}
-            className="absolute left-4 right-4 top-16 z-20 rounded-lg border border-[#6b8e9b]/25 bg-[#fff9e9]/92 p-3 text-sm text-[#27342e] shadow-2xl shadow-[#6b8e9b]/20 backdrop-blur-xl sm:left-auto sm:top-4 sm:w-56"
+            className="absolute left-4 right-4 top-16 z-20 border border-[#151515]/15 bg-white/92 p-3 text-sm text-[#151515] shadow-[5px_5px_0_rgba(21,21,21,0.14)] backdrop-blur-xl sm:left-auto sm:top-4 sm:w-56"
           >
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#6b8e9b]">
+            <p className="text-xs font-bold uppercase text-[#d82f86]">
               {selectedNode.data.kind}
             </p>
-            <h3 className="mt-1 font-semibold text-[#31483c] [font-family:var(--font-display)]">
+            <h3 className="mt-1 font-bold uppercase text-[#151515] [font-family:var(--font-display)]">
               {selectedNode.data.name}
             </h3>
             {selectedNode.data.score ? (
-              <p className="mt-2 text-[#496359]">
+              <p className="mt-2 text-[#4b4b4b]">
                 Recommendation score {selectedNode.data.score.toFixed(3)}
               </p>
             ) : null}
@@ -132,7 +132,7 @@ export function PantryMap({ points }: PantryMapProps) {
 
 function LegendDot({ className, label }: { className: string; label: string }) {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-white/80 px-2.5 py-1 shadow-sm">
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-[#151515]/10 bg-white/84 px-2.5 py-1 shadow-sm">
       <span className={`h-2 w-2 rounded-full ${className}`} />
       {label}
     </span>
@@ -142,16 +142,16 @@ function LegendDot({ className, label }: { className: string; label: string }) {
 function IngredientNode({ data }: NodeProps<Node<IngredientNodeData>>) {
   const style =
     data.kind === "pantry"
-      ? "border-[#4d8d86] bg-[#d9efec] text-[#163f3b]"
+      ? "border-[#151515] bg-[#151515] text-white"
       : data.kind === "bridge"
-        ? "border-[#b9a8d3] bg-[#f4edf8] text-[#4f526d]"
-        : "border-[#e9a7b2] bg-[#fbe7e7] text-[#7a4651]";
+        ? "border-[#6f9c93] bg-[#eef7f4] text-[#244f48]"
+        : "border-[#ec4899] bg-[#ffe7f2] text-[#8c1550]";
   const dot =
     data.kind === "pantry"
-      ? "bg-[#2f5f5b]"
+      ? "bg-white"
       : data.kind === "bridge"
-        ? "bg-[#b9a8d3]"
-        : "bg-[#e9a7b2]";
+        ? "bg-[#6f9c93]"
+        : "bg-[#ec4899]";
 
   return (
     <motion.div
@@ -159,7 +159,7 @@ function IngredientNode({ data }: NodeProps<Node<IngredientNodeData>>) {
       animate={{ opacity: 1, scale: 1 }}
       whileHover={{ scale: 1.03 }}
       transition={{ type: "spring", stiffness: 360, damping: 26 }}
-      className={`min-w-32 rounded-full border px-3 py-2 text-xs font-semibold shadow-sm ${style}`}
+      className={`min-w-32 rounded-full border px-3 py-2 text-xs font-bold shadow-sm ${style}`}
     >
       <Handle type="target" position={Position.Top} className="opacity-0" />
       <div className="flex items-center gap-2">
@@ -203,10 +203,10 @@ function buildGraph(points: PantryMapPoint[]): {
       target: pointId(recommendation),
       label: "nearest",
       type: "smoothstep",
-      markerEnd: { type: MarkerType.ArrowClosed, color: "#b07885" },
-      style: { stroke: "#b07885", strokeWidth: 2.4 },
-      labelStyle: { fill: "#7a4651", fontSize: 11, fontWeight: 700 },
-      labelBgStyle: { fill: "#fff9e9", fillOpacity: 0.86 },
+      markerEnd: { type: MarkerType.ArrowClosed, color: "#ec4899" },
+      style: { stroke: "#ec4899", strokeWidth: 2.4 },
+      labelStyle: { fill: "#8c1550", fontSize: 11, fontWeight: 700 },
+      labelBgStyle: { fill: "#fffaf0", fillOpacity: 0.9 },
     });
   }
 
@@ -219,7 +219,7 @@ function buildGraph(points: PantryMapPoint[]): {
         source: bridge.id,
         target: pointId(point),
         type: "smoothstep",
-        style: { stroke: "#6b8e9b", strokeDasharray: "5 5", strokeWidth: 1.7 },
+        style: { stroke: "#151515", strokeDasharray: "5 5", strokeWidth: 1.7 },
       })),
     );
   }
