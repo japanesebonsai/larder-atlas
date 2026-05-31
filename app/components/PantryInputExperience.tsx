@@ -1,6 +1,15 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import {
+  AnimatePresence,
+  LayoutGroup,
+  motion,
+  useReducedMotion,
+  useScroll,
+  useSpring,
+  useTransform,
+  type Variants,
+} from "framer-motion";
 import { FormEvent, useMemo, useState } from "react";
 import { AtlasAtmosphere } from "./AtlasAtmosphere";
 import { PantryMap, type PantryMapPoint } from "./PantryMap";
@@ -69,6 +78,33 @@ const samplePantries = [
   "yogurt, rice, lentil, cumin",
 ];
 
+const sectionVariants: Variants = {
+  hidden: { opacity: 0, y: 18 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { type: "spring", stiffness: 220, damping: 28 },
+  },
+};
+
+const listVariants: Variants = {
+  hidden: { opacity: 1 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.045 },
+  },
+};
+
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 10, scale: 0.98 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { type: "spring", stiffness: 300, damping: 26 },
+  },
+};
+
 export function PantryInputExperience() {
   const [pantry, setPantry] = useState(samplePantries[0]);
   const [goal, setGoal] = useState<PantryGoal>("more_meals");
@@ -77,6 +113,15 @@ export function PantryInputExperience() {
   const [isLoading, setIsLoading] = useState(false);
   const topRecommendation = analysis?.recommendations[0];
   const hasResults = Boolean(analysis);
+  const reduceMotion = useReducedMotion();
+  const { scrollYProgress } = useScroll();
+  const smoothProgress = useSpring(scrollYProgress, {
+    stiffness: 120,
+    damping: 28,
+    restDelta: 0.001,
+  });
+  const headerY = useTransform(smoothProgress, [0, 0.22], [0, -18]);
+  const headerOpacity = useTransform(smoothProgress, [0, 0.22], [1, 0.9]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -111,33 +156,56 @@ export function PantryInputExperience() {
   const mapPoints = useMemo(() => buildMapPoints(analysis), [analysis]);
 
   return (
-    <>
+    <LayoutGroup>
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-[#31483c] focus:px-4 focus:py-3 focus:text-sm focus:font-bold focus:text-[#fff9e9]"
       >
         Skip to main content
       </a>
-    <main id="main" tabIndex={-1} className="relative min-h-screen text-[#27342e]">
+      <motion.div
+        className="fixed left-0 top-0 z-40 h-1 origin-left bg-[#b9a8d3]"
+        style={{ scaleX: smoothProgress, width: "100%" }}
+      />
+    <motion.main
+      id="main"
+      tabIndex={-1}
+      className="relative min-h-screen text-[#27342e]"
+      initial={reduceMotion ? false : { opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.35 }}
+    >
       <AtlasAtmosphere />
       <div className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-8 px-5 py-6 sm:px-8 lg:px-10">
-        <header className="flex flex-col gap-3 border-b border-[#6b8e9b]/25 pb-5 sm:flex-row sm:items-end sm:justify-between">
+        <motion.header
+          style={reduceMotion ? undefined : { y: headerY, opacity: headerOpacity }}
+          className="flex flex-col gap-3 border-b border-[#6b8e9b]/25 pb-5 sm:flex-row sm:items-end sm:justify-between"
+        >
           <div>
             <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#6b8e9b]">
               Larder Atlas
             </p>
-            <h1 className="mt-2 max-w-2xl text-4xl font-semibold tracking-tight text-[#31483c] sm:text-6xl [font-family:var(--font-display)]">
+            <motion.h1
+              layout
+              className="mt-2 max-w-2xl text-4xl font-semibold tracking-tight text-[#31483c] sm:text-6xl [font-family:var(--font-display)]"
+            >
               Map what is on hand. Find what unlocks dinner.
-            </h1>
+            </motion.h1>
           </div>
           <p className="max-w-sm text-sm leading-6 text-[#496359]">
             A soft atlas for turning what you already have into the next useful
             ingredient.
           </p>
-        </header>
+        </motion.header>
 
-        <section className="grid gap-6 lg:grid-cols-[0.95fr_1.25fr]">
-          <form
+        <motion.section
+          variants={sectionVariants}
+          initial={reduceMotion ? false : "hidden"}
+          animate="visible"
+          className="grid gap-6 lg:grid-cols-[0.95fr_1.25fr]"
+        >
+          <motion.form
+            layout
             onSubmit={handleSubmit}
             className="flex flex-col gap-5 rounded-lg border border-[#6b8e9b]/25 bg-[#fff9e9]/78 p-5 shadow-2xl shadow-[#6b8e9b]/20 backdrop-blur-xl"
           >
@@ -157,18 +225,21 @@ export function PantryInputExperience() {
               />
             </div>
 
-            <div className="flex flex-wrap gap-2">
+            <motion.div variants={listVariants} initial="hidden" animate="visible" className="flex flex-wrap gap-2">
               {samplePantries.map((sample) => (
-                <button
+                <motion.button
                   key={sample}
                   type="button"
                   onClick={() => setPantry(sample)}
+                  variants={itemVariants}
+                  whileHover={reduceMotion ? undefined : { y: -2 }}
+                  whileTap={reduceMotion ? undefined : { scale: 0.97 }}
                   className="cursor-pointer rounded-full border border-[#6b8e9b]/25 bg-[#e9f0df]/70 px-3 py-1.5 text-sm text-[#496359] transition hover:border-[#b9a8d3] hover:text-[#31483c] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6b8e9b]"
                 >
                   {sample}
-                </button>
+                </motion.button>
               ))}
-            </div>
+            </motion.div>
 
             <div>
               <p className="text-sm font-bold text-[#31483c]">Goal</p>
@@ -177,63 +248,96 @@ export function PantryInputExperience() {
                   const isSelected = item.id === goal;
 
                   return (
-                    <button
+                    <motion.button
                       key={item.id}
                       type="button"
                       onClick={() => setGoal(item.id)}
                       aria-pressed={isSelected}
+                      layout
+                      whileHover={reduceMotion ? undefined : { y: -2 }}
+                      whileTap={reduceMotion ? undefined : { scale: 0.96 }}
                       className={[
-                        "cursor-pointer rounded-full border px-3 py-1.5 text-sm font-bold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6b8e9b]",
+                        "relative cursor-pointer rounded-full border px-3 py-1.5 text-sm font-bold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6b8e9b]",
                         isSelected
                           ? "border-[#b9a8d3] bg-[#b9a8d3] text-[#252033]"
                           : "border-[#6b8e9b]/25 bg-[#fffdf5]/65 text-[#496359] hover:border-[#b9a8d3] hover:text-[#31483c]",
                       ].join(" ")}
                     >
+                      {isSelected ? (
+                        <motion.span
+                          layoutId="selected-goal"
+                          className="absolute inset-0 -z-10 rounded-full bg-[#b9a8d3]"
+                          transition={{ type: "spring", stiffness: 450, damping: 34 }}
+                        />
+                      ) : null}
                       {item.label}
-                    </button>
+                    </motion.button>
                   );
                 })}
               </div>
             </div>
 
-            <button
+            <motion.button
               type="submit"
               disabled={isLoading}
+              whileHover={reduceMotion || isLoading ? undefined : { y: -2 }}
+              whileTap={reduceMotion || isLoading ? undefined : { scale: 0.98 }}
               className="inline-flex h-12 cursor-pointer items-center justify-center rounded-md border border-[#31483c]/20 bg-[#31483c] px-5 text-sm font-bold text-[#fff9e9] shadow-lg shadow-[#6b8e9b]/20 transition hover:bg-[#496359] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6b8e9b] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isLoading ? "Mapping pantry..." : "Analyze pantry"}
-            </button>
+            </motion.button>
 
-            {error ? (
-              <p className="rounded-md bg-[#f9d8d4] px-3 py-2 text-sm text-[#7a332d]">
-                {error}
-              </p>
-            ) : null}
-          </form>
+            <AnimatePresence>
+              {error ? (
+                <motion.p
+                  initial={{ opacity: 0, y: -6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  className="rounded-md bg-[#f9d8d4] px-3 py-2 text-sm text-[#7a332d]"
+                  role="alert"
+                >
+                  {error}
+                </motion.p>
+              ) : null}
+            </AnimatePresence>
+          </motion.form>
 
           <section className="grid gap-5">
-            <article className="rounded-lg border border-[#6b8e9b]/25 bg-[#fff9e9]/78 p-5 shadow-2xl shadow-[#6b8e9b]/20 backdrop-blur-xl">
+            <motion.article layout className="rounded-lg border border-[#6b8e9b]/25 bg-[#fff9e9]/78 p-5 shadow-2xl shadow-[#6b8e9b]/20 backdrop-blur-xl">
               <p className="text-sm font-bold text-[#6b8e9b]">
                 Smartest buy
               </p>
+              <AnimatePresence mode="wait">
               {topRecommendation ? (
-                <div className="mt-4">
+                <motion.div
+                  key={topRecommendation.ingredient.nodeId}
+                  initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={reduceMotion ? undefined : { opacity: 0, y: -8 }}
+                  transition={{ type: "spring", stiffness: 280, damping: 26 }}
+                  className="mt-4"
+                >
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                     <h2 className="text-4xl font-semibold tracking-tight text-[#31483c] [font-family:var(--font-display)]">
                       {humanize(topRecommendation.ingredient.name)}
                     </h2>
-                    <span className="w-fit rounded-full bg-[#e9d7ef] px-3 py-1 text-sm font-bold text-[#5a4f75]">
+                    <motion.span
+                      initial={reduceMotion ? false : { scale: 0.9 }}
+                      animate={{ scale: 1 }}
+                      className="w-fit rounded-full bg-[#e9d7ef] px-3 py-1 text-sm font-bold text-[#5a4f75]"
+                    >
                       score {topRecommendation.score.toFixed(3)}
-                    </span>
+                    </motion.span>
                   </div>
                   <p className="mt-4 max-w-2xl text-base leading-7 text-[#496359]">
                     {analysis?.explanation}
                   </p>
-                </div>
+                </motion.div>
               ) : (
                 <EmptyState hasResults={hasResults} />
               )}
-            </article>
+              </AnimatePresence>
+            </motion.article>
 
             <div className="grid gap-5 xl:grid-cols-2">
               <article className="rounded-lg border border-[#6b8e9b]/25 bg-[#fff9e9]/78 p-5 shadow-2xl shadow-[#6b8e9b]/20 backdrop-blur-xl">
@@ -241,12 +345,15 @@ export function PantryInputExperience() {
                 {matchedNames.length > 0 ? (
                   <div className="mt-4 flex flex-wrap gap-2">
                     {matchedNames.map((name) => (
-                      <span
+                      <motion.span
                         key={name}
+                        layout
+                        initial={{ opacity: 0, scale: 0.92 }}
+                        animate={{ opacity: 1, scale: 1 }}
                         className="rounded-full bg-[#dcebd2] px-3 py-1.5 text-sm font-bold text-[#31483c]"
                       >
                         {name}
-                      </span>
+                      </motion.span>
                     ))}
                   </div>
                 ) : (
@@ -280,21 +387,33 @@ export function PantryInputExperience() {
               </article>
             </div>
           </section>
-        </section>
+        </motion.section>
 
-        <section className="grid gap-5 rounded-lg border border-[#6b8e9b]/25 bg-[#fff9e9]/72 p-5 shadow-2xl shadow-[#6b8e9b]/20 backdrop-blur-xl lg:grid-cols-[1.35fr_0.65fr]">
+        <motion.section
+          variants={sectionVariants}
+          initial={reduceMotion ? false : "hidden"}
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.2 }}
+          className="grid gap-5 rounded-lg border border-[#6b8e9b]/25 bg-[#fff9e9]/72 p-5 shadow-2xl shadow-[#6b8e9b]/20 backdrop-blur-xl lg:grid-cols-[1.35fr_0.65fr]"
+        >
           <PantryMap points={mapPoints} />
-          <div className="grid content-start gap-3 sm:grid-cols-3 lg:grid-cols-1">
+          <motion.div variants={listVariants} initial="hidden" animate="visible" className="grid content-start gap-3 sm:grid-cols-3 lg:grid-cols-1">
             <AtlasMetric label="Pantry" value={analysis?.matched.length ?? 0} />
             <AtlasMetric
               label="Suggestions"
               value={analysis?.recommendations.length ?? 0}
             />
             <AtlasMetric label="Mapped" value={mapPoints.length} />
-          </div>
-        </section>
+          </motion.div>
+        </motion.section>
 
-        <section className="rounded-lg border border-[#6b8e9b]/25 bg-[#fff9e9]/78 p-5 shadow-2xl shadow-[#6b8e9b]/20 backdrop-blur-xl">
+        <motion.section
+          variants={sectionVariants}
+          initial={reduceMotion ? false : "hidden"}
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.18 }}
+          className="rounded-lg border border-[#6b8e9b]/25 bg-[#fff9e9]/78 p-5 shadow-2xl shadow-[#6b8e9b]/20 backdrop-blur-xl"
+        >
           <SectionTitle title="Top buys" />
           {analysis?.recommendations.length ? (
             <motion.div layout className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
@@ -303,9 +422,9 @@ export function PantryInputExperience() {
                 <motion.article
                   key={recommendation.ingredient.nodeId}
                   layout
-                  initial={{ opacity: 0, y: 12 }}
+                  initial={reduceMotion ? false : { opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -8 }}
+                  exit={reduceMotion ? undefined : { opacity: 0, y: -8 }}
                   transition={{
                     type: "spring",
                     stiffness: 320,
@@ -339,10 +458,10 @@ export function PantryInputExperience() {
               Recommendations will appear here after analysis.
             </p>
           )}
-        </section>
+        </motion.section>
       </div>
-    </main>
-    </>
+    </motion.main>
+    </LayoutGroup>
   );
 }
 
