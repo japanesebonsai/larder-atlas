@@ -15,7 +15,7 @@ import {
   useNodesState,
 } from "@xyflow/react";
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 
 export type PantryMapPoint = {
   id: number;
@@ -28,6 +28,8 @@ export type PantryMapPoint = {
 
 type PantryMapProps = {
   points: PantryMapPoint[];
+  selectedPointId?: string;
+  onSelectPoint?: (id: string) => void;
 };
 
 type IngredientNodeData = {
@@ -40,12 +42,16 @@ const nodeTypes = {
   ingredient: IngredientNode,
 };
 
-export function PantryMap({ points }: PantryMapProps) {
+export function PantryMap({ points, selectedPointId, onSelectPoint }: PantryMapProps) {
   const graph = useMemo(() => buildGraph(points), [points]);
   const [nodes, setNodes, onNodesChange] = useNodesState(graph.nodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(graph.edges);
-  const [selectedNode, setSelectedNode] = useState<Node<IngredientNodeData> | null>(
-    null,
+  const selectedNode = useMemo(
+    () =>
+      selectedPointId
+        ? nodes.find((node) => node.id === selectedPointId) ?? null
+        : null,
+    [nodes, selectedPointId],
   );
 
   useEffect(() => {
@@ -67,7 +73,7 @@ export function PantryMap({ points }: PantryMapProps) {
           nodeTypes={nodeTypes}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
-          onNodeClick={(_, node) => setSelectedNode(node as Node<IngredientNodeData>)}
+          onNodeClick={(_, node) => onSelectPoint?.(node.id)}
           fitView
           fitViewOptions={{ padding: 0.28 }}
           minZoom={0.55}

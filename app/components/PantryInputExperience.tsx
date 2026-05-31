@@ -69,12 +69,14 @@ const samplePantries = [
   "yogurt, rice, lentil, cumin",
 ];
 
-export function PantryInputExperience() {
+export function PantryInputExperience({ ingredientNames }: { ingredientNames: string[] }) {
   const [pantry, setPantry] = useState(samplePantries[0]);
+  const [ingredientDraft, setIngredientDraft] = useState("");
   const [goal, setGoal] = useState<PantryGoal>("more_meals");
   const [analysis, setAnalysis] = useState<RecommendResponse | null>(null);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedPointId, setSelectedPointId] = useState<string>("");
   const reduceMotion = useReducedMotion();
   const topRecommendation = analysis?.recommendations[0];
   const matchedNames = useMemo(
@@ -102,11 +104,37 @@ export function PantryInputExperience() {
       }
 
       setAnalysis(await response.json());
+      setSelectedPointId("");
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Something went wrong.");
     } finally {
       setIsLoading(false);
     }
+  }
+
+  function addIngredient(value: string) {
+    const nextIngredient = value.trim();
+
+    if (!nextIngredient) {
+      return;
+    }
+
+    setPantry((currentPantry) => {
+      const currentItems = currentPantry
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean);
+      const hasIngredient = currentItems.some(
+        (item) => item.toLowerCase() === nextIngredient.toLowerCase(),
+      );
+
+      if (hasIngredient) {
+        return currentPantry;
+      }
+
+      return [...currentItems, nextIngredient].join(", ");
+    });
+    setIngredientDraft("");
   }
 
   return (
@@ -183,6 +211,38 @@ export function PantryInputExperience() {
                 className="mt-3 min-h-36 w-full resize-none rounded-3xl border border-white/10 bg-black/30 p-4 text-base leading-7 text-white outline-none transition placeholder:text-white/34 focus:border-white/34 focus:ring-4 focus:ring-[#ff1fd6]/18"
                 placeholder="rice, egg, cabbage, soy sauce"
               />
+
+              <div className="mt-3 flex gap-2">
+                <label htmlFor="ingredient-lookup" className="sr-only">
+                  Add ingredient
+                </label>
+                <input
+                  id="ingredient-lookup"
+                  list="epicure-ingredients"
+                  value={ingredientDraft}
+                  onChange={(event) => setIngredientDraft(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      event.preventDefault();
+                      addIngredient(ingredientDraft);
+                    }
+                  }}
+                  className="min-h-11 min-w-0 flex-1 rounded-full border border-white/10 bg-black/30 px-4 text-sm text-white outline-none transition placeholder:text-white/34 focus:border-white/34 focus:ring-4 focus:ring-[#ff1fd6]/18"
+                  placeholder="Look up ingredient"
+                />
+                <button
+                  type="button"
+                  onClick={() => addIngredient(ingredientDraft)}
+                  className="min-h-11 cursor-pointer rounded-full border border-white/12 bg-white px-4 text-sm font-semibold text-[#050505] transition hover:bg-[#ffe0fb] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                >
+                  Add
+                </button>
+                <datalist id="epicure-ingredients">
+                  {ingredientNames.map((name) => (
+                    <option key={name} value={name} />
+                  ))}
+                </datalist>
+              </div>
 
               <div className="mt-4 flex flex-wrap gap-2">
                 {samplePantries.map((sample) => (
@@ -341,10 +401,19 @@ export function PantryInputExperience() {
 
           <section
             id="atlas"
-            className="grid gap-5 border-b border-white/10 py-5 lg:grid-cols-[1fr_220px]"
+            className="grid gap-5 border-b border-white/10 py-5 lg:grid-cols-[1fr_320px]"
           >
-            <PantryMap points={mapPoints} />
+            <PantryMap
+              points={mapPoints}
+              selectedPointId={selectedPointId}
+              onSelectPoint={setSelectedPointId}
+            />
             <div className="grid content-start gap-3 sm:grid-cols-3 lg:grid-cols-1">
+              <IngredientList
+                analysis={analysis}
+                selectedPointId={selectedPointId}
+                onSelectPoint={setSelectedPointId}
+              />
               <AtlasMetric label="Pantry" value={analysis?.matched.length ?? 0} />
               <AtlasMetric
                 label="Suggestions"
@@ -458,6 +527,129 @@ function AtlasMetric({ label, value }: { label: string; value: number }) {
   );
 }
 
+function IngredientList({
+  analysis,
+  selectedPointId,
+  onSelectPoint,
+}: {
+  analysis: RecommendResponse | null;
+  selectedPointId: string;
+  onSelectPoint: (id: string) => void;
+}) {
+  const matched = analysis?.matched ?? [];
+  const recommendations = analysis?.recommendations ?? [];
+  const missing = analysis?.missing ?? [];
+
+  return (
+    <article className="rounded-[24px] border border-white/10 bg-white/[0.045] p-4 backdrop-blur-xl sm:col-span-3 lg:col-span-1">
+      <SectionLabel>Ingredients</SectionLabel>
+      <div className="mt-4 space-y-5">
+        <IngredientListGroup title="Matched">
+          {matched.length ? (
+            matched.map((item) => {
+              const id = pointKey("pantry", item.ingredient.nodeId);
+
+              return (
+                <IngredientListButton
+                  key={id}
+                  isSelected={selectedPointId === id}
+                  label={humanize(item.ingredient.name)}
+                  detail={humanize(item.ingredient.primaryCategory)}
+                  onClick={() => onSelectPoint(id)}
+                />
+              );
+            })
+          ) : (
+            <EmptyListText>Waiting for analysis.</EmptyListText>
+          )}
+        </IngredientListGroup>
+
+        <IngredientListGroup title="Recommended">
+          {recommendations.length ? (
+            recommendations.slice(0, 6).map((item) => {
+              const id = pointKey("recommendation", item.ingredient.nodeId);
+
+              return (
+                <IngredientListButton
+                  key={id}
+                  isSelected={selectedPointId === id}
+                  label={humanize(item.ingredient.name)}
+                  detail={item.score.toFixed(3)}
+                  onClick={() => onSelectPoint(id)}
+                />
+              );
+            })
+          ) : (
+            <EmptyListText>No buys yet.</EmptyListText>
+          )}
+        </IngredientListGroup>
+
+        {missing.length ? (
+          <IngredientListGroup title="Missing">
+            <div className="flex flex-wrap gap-2">
+              {missing.map((item) => (
+                <span
+                  key={item}
+                  className="rounded-full border border-white/10 px-2.5 py-1 text-xs font-semibold text-white/46"
+                >
+                  {item}
+                </span>
+              ))}
+            </div>
+          </IngredientListGroup>
+        ) : null}
+      </div>
+    </article>
+  );
+}
+
+function IngredientListGroup({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section>
+      <p className="text-xs font-semibold uppercase text-white/38">{title}</p>
+      <div className="mt-2 space-y-2">{children}</div>
+    </section>
+  );
+}
+
+function IngredientListButton({
+  label,
+  detail,
+  isSelected,
+  onClick,
+}: {
+  label: string;
+  detail: string;
+  isSelected: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={[
+        "flex min-h-11 w-full cursor-pointer items-center justify-between gap-3 rounded-2xl border px-3 py-2 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white",
+        isSelected
+          ? "border-[#ff1fd6]/55 bg-[#ff1fd6]/16 text-white"
+          : "border-white/8 bg-black/20 text-white/68 hover:border-white/18 hover:text-white",
+      ].join(" ")}
+    >
+      <span className="text-sm font-semibold">{label}</span>
+      <span className="shrink-0 text-xs font-semibold text-white/42">{detail}</span>
+    </button>
+  );
+}
+
+function EmptyListText({ children }: { children: React.ReactNode }) {
+  return <p className="text-sm text-white/42">{children}</p>;
+}
+
 function AffinityList({
   label,
   items,
@@ -493,6 +685,10 @@ function AffinityList({
 
 function humanize(value: string): string {
   return value.replaceAll("_", " ");
+}
+
+function pointKey(kind: "pantry" | "recommendation", id: number) {
+  return `${kind}-${id}`;
 }
 
 function buildMapPoints(analysis: RecommendResponse | null): PantryMapPoint[] {
