@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
+import { PantryMap, type PantryMapPoint } from "./PantryMap";
 
 type PublicIngredient = {
   nodeId: number;
@@ -85,6 +86,7 @@ export function PantryInputExperience() {
     () => analysis?.matched.map((item) => humanize(item.ingredient.name)) ?? [],
     [analysis],
   );
+  const mapPoints = useMemo(() => buildMapPoints(analysis), [analysis]);
 
   return (
     <main className="min-h-screen bg-[#f8f6f0] text-[#1f2520]">
@@ -224,6 +226,26 @@ export function PantryInputExperience() {
           </section>
         </section>
 
+        <section className="grid gap-5 rounded-lg border border-[#ded8c8] bg-[#fffdf8] p-5 shadow-sm lg:grid-cols-[1.35fr_0.65fr]">
+          <PantryMap points={mapPoints} />
+          <div className="flex flex-col justify-between gap-5">
+            <div>
+              <SectionTitle title="Atlas signal" />
+              <p className="mt-3 text-sm leading-6 text-[#596153]">
+                Your pantry cluster shows the cooking territory you already
+                occupy. The highlighted buys show nearby moves and wider jumps
+                from that starting point.
+              </p>
+            </div>
+            <div className="rounded-md bg-[#f4f7ed] p-4 text-sm leading-6 text-[#4f584b]">
+              Pantry items are teal. Recommended buys are amber. When a
+              recommendation lands close to your pantry cluster, it is a small
+              practical move; when it lands farther away, it opens a new
+              direction.
+            </div>
+          </div>
+        </section>
+
         <section className="rounded-lg border border-[#ded8c8] bg-[#fffdf8] p-5 shadow-sm">
           <SectionTitle title="Top buys" />
           {analysis?.recommendations.length ? (
@@ -312,4 +334,33 @@ function AffinityList({
 
 function humanize(value: string): string {
   return value.replaceAll("_", " ");
+}
+
+function buildMapPoints(analysis: RecommendResponse | null): PantryMapPoint[] {
+  if (!analysis) {
+    return [];
+  }
+
+  const pantryPoints = analysis.matched
+    .filter((item) => item.ingredient.atlas)
+    .map((item) => ({
+      id: item.ingredient.nodeId,
+      name: humanize(item.ingredient.name),
+      x: item.ingredient.atlas?.x ?? 0,
+      y: item.ingredient.atlas?.y ?? 0,
+      kind: "pantry" as const,
+    }));
+  const recommendationPoints = analysis.recommendations
+    .filter((item) => item.ingredient.atlas)
+    .slice(0, 6)
+    .map((item) => ({
+      id: item.ingredient.nodeId,
+      name: humanize(item.ingredient.name),
+      x: item.ingredient.atlas?.x ?? 0,
+      y: item.ingredient.atlas?.y ?? 0,
+      kind: "recommendation" as const,
+      score: item.score,
+    }));
+
+  return [...pantryPoints, ...recommendationPoints];
 }
