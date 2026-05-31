@@ -142,7 +142,7 @@ export function PantryInputExperience() {
 
           <section className="grid gap-10 border-b border-white/10 py-10 lg:min-h-[680px] lg:grid-cols-[minmax(0,1fr)_420px] lg:items-end lg:py-16">
             <div className="max-w-5xl">
-              <p className="text-xs font-semibold uppercase text-[#ff6a00]">
+              <p className="text-xs font-semibold uppercase text-[#ff1fd6]">
                 Epicure system
               </p>
               <h1 className="mt-6 max-w-5xl text-6xl font-semibold leading-[0.9] text-white sm:text-8xl lg:text-9xl">
@@ -314,7 +314,7 @@ export function PantryInputExperience() {
                   <p className="text-sm text-white/48">Waiting for analysis.</p>
                 )}
                 {analysis?.missing.length ? (
-                  <p className="mt-4 text-sm font-semibold text-[#ffb56f]">
+                  <p className="mt-4 text-sm font-semibold text-[#f0d8ff]">
                     Not found yet: {analysis.missing.join(", ")}
                   </p>
                 ) : null}
@@ -382,7 +382,7 @@ export function PantryInputExperience() {
                           {recommendation.score.toFixed(3)}
                         </span>
                       </div>
-                      <p className="mt-1 text-sm font-semibold text-[#ff6a00]">
+                      <p className="mt-1 text-sm font-semibold text-[#ff1fd6]">
                         {humanize(recommendation.ingredient.primaryCategory)}
                       </p>
                       <ul className="mt-3 space-y-2 text-sm leading-5 text-white/56">
@@ -417,7 +417,7 @@ function SectionLabel({
     <p
       className={[
         "text-xs font-semibold uppercase",
-        inverted ? "text-white/58" : "text-[#ff6a00]",
+        inverted ? "text-white/58" : "text-[#ff1fd6]",
       ].join(" ")}
     >
       {children}
@@ -443,7 +443,7 @@ function InfoPanel({
 function AtlasMetric({ label, value }: { label: string; value: number }) {
   return (
     <motion.div layout className="rounded-[24px] border border-white/10 bg-white/[0.045] p-4 backdrop-blur-xl">
-      <p className="text-xs font-semibold uppercase text-[#ff6a00]">
+      <p className="text-xs font-semibold uppercase text-[#ff1fd6]">
         {label}
       </p>
       <motion.p

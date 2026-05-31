@@ -80,7 +80,7 @@ export function PantryMap({ points }: PantryMapProps) {
               node.data.kind === "pantry"
                 ? "#f8fafc"
                 : node.data.kind === "bridge"
-                  ? "#ff6a00"
+                  ? "#b000ff"
                   : "#ff1fd6"
             }
             maskColor="rgba(5, 5, 5, 0.62)"
@@ -97,7 +97,7 @@ export function PantryMap({ points }: PantryMapProps) {
 
       <div className="absolute bottom-5 left-5 z-10 flex gap-2 text-xs text-white/62">
         <LegendDot className="bg-white" label="pantry" />
-        <LegendDot className="bg-[#ff6a00]" label="branch" />
+        <LegendDot className="bg-[#b000ff]" label="branch" />
         <LegendDot className="bg-[#ff1fd6]" label="buy" />
       </div>
 
@@ -111,7 +111,7 @@ export function PantryMap({ points }: PantryMapProps) {
             transition={{ type: "spring", stiffness: 380, damping: 30 }}
             className="absolute left-5 right-5 top-20 z-20 rounded-3xl border border-white/12 bg-black/72 p-4 text-sm text-white backdrop-blur-xl sm:left-auto sm:top-5 sm:w-60"
           >
-            <p className="text-xs font-semibold uppercase text-[#ff6a00]">
+            <p className="text-xs font-semibold uppercase text-[#b000ff]">
               {selectedNode.data.kind}
             </p>
             <h3 className="mt-2 text-lg font-semibold text-white">
@@ -143,13 +143,13 @@ function IngredientNode({ data }: NodeProps<Node<IngredientNodeData>>) {
     data.kind === "pantry"
       ? "border-white/30 bg-white text-[#050505]"
       : data.kind === "bridge"
-        ? "border-[#ff6a00]/45 bg-[#ff6a00]/14 text-[#ffe6cf]"
+        ? "border-[#b000ff]/45 bg-[#b000ff]/16 text-[#f0d8ff]"
         : "border-[#ff1fd6]/55 bg-[#ff1fd6]/18 text-[#ffe0fb]";
   const dot =
     data.kind === "pantry"
       ? "bg-[#050505]"
       : data.kind === "bridge"
-        ? "bg-[#ff6a00]"
+        ? "bg-[#b000ff]"
         : "bg-[#ff1fd6]";
 
   return (
@@ -218,7 +218,7 @@ function buildGraph(points: PantryMapPoint[]): {
         source: bridge.id,
         target: pointId(point),
         type: "smoothstep",
-        style: { stroke: "#ff6a00", strokeDasharray: "5 5", strokeWidth: 1.7 },
+        style: { stroke: "#b000ff", strokeDasharray: "5 5", strokeWidth: 1.7 },
       })),
     );
   }

@@ -19,7 +19,7 @@ const orbColor = "#ff1fd6";
 const orbPositionX = 230;
 const orbPositionY = -260;
 const starColor = "#f8fafc";
-const starColor2 = "#ff6a00";
+const starColor2 = "#b000ff";
 const starBaseSize = 0.55;
 const starFuzziness = 0.2;
 const starCount = 72;
@@ -197,8 +197,8 @@ export function AtlasAtmosphere() {
         ref={canvasRef}
         className="absolute left-0 top-0 h-full w-full will-change-transform"
       />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_82%_6%,rgba(255,31,214,0.58),transparent_32%),radial-gradient(circle_at_64%_28%,rgba(153,0,255,0.38),transparent_34%),radial-gradient(circle_at_78%_76%,rgba(255,106,0,0.34),transparent_36%),linear-gradient(112deg,#050505_0%,#050505_31%,rgba(36,0,78,0.82)_48%,rgba(255,31,214,0.36)_72%,rgba(255,31,214,0.48)_100%)]" />
-      <div className="absolute inset-0 bg-[linear-gradient(115deg,rgba(255,255,255,0.06),transparent_25%,rgba(255,255,255,0.025)_52%,transparent_78%)]" />
+      <div className="absolute right-[-18%] top-[-24%] h-[62vh] w-[76vw] bg-[radial-gradient(circle_at_68%_28%,rgba(255,31,214,0.72),transparent_31%),radial-gradient(circle_at_36%_42%,rgba(176,0,255,0.42),transparent_36%),linear-gradient(120deg,transparent_0%,rgba(255,31,214,0.22)_48%,rgba(255,31,214,0.42)_100%)] blur-[22px]" />
+      <div className="absolute inset-0 bg-[linear-gradient(112deg,#050505_0%,#050505_42%,rgba(5,5,5,0.9)_62%,rgba(5,5,5,0.2)_100%)]" />
     </div>
   );
 }
