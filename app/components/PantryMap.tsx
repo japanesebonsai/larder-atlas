@@ -109,7 +109,7 @@ export function PantryMap({ points }: PantryMapProps) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.98 }}
             transition={{ type: "spring", stiffness: 380, damping: 30 }}
-            className="absolute right-4 top-4 z-20 w-52 rounded-lg border border-[#d8d0be] bg-white/95 p-3 text-sm shadow-lg"
+            className="absolute left-4 right-4 top-16 z-20 rounded-lg border border-[#d8d0be] bg-white/95 p-3 text-sm shadow-lg sm:left-auto sm:top-4 sm:w-56"
           >
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#8c917f]">
               {selectedNode.data.kind}
@@ -183,7 +183,7 @@ function buildGraph(points: PantryMapPoint[]): {
   const nodes: Node<IngredientNodeData>[] = points.map((point) => ({
     id: pointId(point),
     type: "ingredient",
-    position: projectToCanvas(point, bounds),
+    position: projectToCanvas(point, bounds, points),
     data: {
       name: point.name,
       kind: point.kind,
@@ -206,7 +206,7 @@ function buildGraph(points: PantryMapPoint[]): {
       label: "closest pantry link",
       type: "smoothstep",
       markerEnd: { type: MarkerType.ArrowClosed, color: "#9d632a" },
-      style: { stroke: "#b98a52", strokeWidth: 2 },
+      style: { stroke: "#b98a52", strokeWidth: 2.4 },
       labelStyle: { fill: "#6d5a36", fontSize: 11, fontWeight: 600 },
       labelBgStyle: { fill: "#fffdf8", fillOpacity: 0.85 },
     });
@@ -221,7 +221,7 @@ function buildGraph(points: PantryMapPoint[]): {
         source: bridge.id,
         target: pointId(point),
         type: "smoothstep",
-        style: { stroke: "#9aa38e", strokeDasharray: "5 5", strokeWidth: 1.5 },
+        style: { stroke: "#6f7f67", strokeDasharray: "5 5", strokeWidth: 1.7 },
       })),
     );
   }
@@ -244,7 +244,7 @@ function buildBridgeNode(
   return {
     id: "branch-pantry-center",
     type: "ingredient",
-    position: projectToCanvas(center, bounds),
+    position: projectToCanvas(center, bounds, pantry),
     data: {
       name: "pantry center",
       kind: "bridge",
@@ -254,15 +254,38 @@ function buildBridgeNode(
 }
 
 function projectToCanvas(
-  point: Pick<PantryMapPoint, "x" | "y">,
+  point: Pick<PantryMapPoint, "x" | "y"> & { kind: IngredientNodeData["kind"] },
   bounds: ReturnType<typeof getBounds>,
+  allPoints: Array<Pick<PantryMapPoint, "x" | "y"> & { kind: IngredientNodeData["kind"] }>,
 ) {
   const width = bounds.maxX - bounds.minX || 1;
   const height = bounds.maxY - bounds.minY || 1;
+  const baseX = ((point.x - bounds.minX) / width) * 720;
+  const baseY = (1 - (point.y - bounds.minY) / height) * 320;
+
+  if (point.kind !== "recommendation") {
+    return { x: baseX, y: baseY };
+  }
+
+  const pantryCenter = centerOf(allPoints.filter((candidate) => candidate.kind === "pantry"));
+  const directionX = point.x - pantryCenter.x || 0.2;
+  const directionY = point.y - pantryCenter.y || 0.2;
+  const length = Math.hypot(directionX, directionY) || 1;
 
   return {
-    x: ((point.x - bounds.minX) / width) * 720,
-    y: (1 - (point.y - bounds.minY) / height) * 320,
+    x: baseX + (directionX / length) * 64,
+    y: baseY - (directionY / length) * 36,
+  };
+}
+
+function centerOf(points: Array<Pick<PantryMapPoint, "x" | "y">>) {
+  if (!points.length) {
+    return { x: 0, y: 0 };
+  }
+
+  return {
+    x: points.reduce((sum, point) => sum + point.x, 0) / points.length,
+    y: points.reduce((sum, point) => sum + point.y, 0) / points.length,
   };
 }
 

@@ -274,7 +274,7 @@ export function PantryInputExperience() {
           </section>
         </section>
 
-        <section className="grid gap-5 rounded-lg border border-[#ded8c8] bg-[#fffdf8] p-5 shadow-sm lg:grid-cols-[1.35fr_0.65fr]">
+        <section className="grid gap-5 rounded-lg border border-[#d7dfcb] bg-[#fbfdf7] p-5 shadow-sm lg:grid-cols-[1.35fr_0.65fr]">
           <PantryMap points={mapPoints} />
           <div className="flex flex-col justify-between gap-5">
             <div>
@@ -285,7 +285,7 @@ export function PantryInputExperience() {
                 from that starting point.
               </p>
             </div>
-            <div className="rounded-md bg-[#f4f7ed] p-4 text-sm leading-6 text-[#4f584b]">
+            <div className="rounded-md border border-[#d7dfcb] bg-white p-4 text-sm leading-6 text-[#4f584b]">
               Pantry items are teal. Recommended buys are amber. When a
               recommendation lands close to your pantry cluster, it is a small
               practical move; when it lands farther away, it opens a new
