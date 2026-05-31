@@ -14,15 +14,15 @@ type Star = {
   useSecondaryColor: boolean;
 };
 
-const orbSize = 1180;
+const orbSize = 980;
 const orbColor = "#e7a7c5";
 const orbPositionX = 110;
 const orbPositionY = -260;
 const starColor = "#fff5bf";
 const starColor2 = "#b9a8d3";
-const starBaseSize = 1.15;
+const starBaseSize = 0.8;
 const starFuzziness = 0.2;
-const starCount = 150;
+const starCount = 72;
 
 export function AtlasAtmosphere() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -180,11 +180,11 @@ export function AtlasAtmosphere() {
   return (
     <div
       ref={containerRef}
-      className="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-[#edf3df]"
+      className="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-[#eef4e8]"
     >
       <div
         ref={orbRef}
-        className="absolute left-1/2 rounded-full opacity-60 blur-[80px] will-change-transform"
+        className="absolute left-1/2 rounded-full opacity-40 blur-[90px] will-change-transform"
         style={{
           top: orbPositionY,
           width: orbSize,
@@ -197,8 +197,8 @@ export function AtlasAtmosphere() {
         ref={canvasRef}
         className="absolute left-0 top-0 h-full w-full will-change-transform"
       />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_28%_20%,rgba(185,168,211,0.38),transparent_34%),radial-gradient(circle_at_70%_18%,rgba(233,167,178,0.34),transparent_36%),linear-gradient(180deg,rgba(237,243,223,0.28),rgba(107,142,155,0.22)_55%,rgba(75,103,94,0.22))]" />
-      <div className="absolute inset-0 bg-[linear-gradient(115deg,rgba(255,255,255,0.22),transparent_32%,rgba(255,245,191,0.18)_54%,transparent_72%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_28%_18%,rgba(185,168,211,0.26),transparent_34%),radial-gradient(circle_at_74%_12%,rgba(233,167,178,0.22),transparent_34%),linear-gradient(180deg,rgba(255,253,245,0.74),rgba(238,244,232,0.72)_55%,rgba(210,226,211,0.78))]" />
+      <div className="absolute inset-0 bg-[linear-gradient(115deg,rgba(255,255,255,0.28),transparent_34%,rgba(255,245,191,0.14)_58%,transparent_76%)]" />
     </div>
   );
 }
