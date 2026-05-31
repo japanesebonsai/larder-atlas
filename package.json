@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit --incremental false"
   },
   "dependencies": {
+    "@vercel/analytics": "^2.0.1",
     "@xyflow/react": "^12.10.2",
     "framer-motion": "^12.40.0",
     "next": "16.2.6",
