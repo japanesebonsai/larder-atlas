@@ -1,6 +1,8 @@
 "use client";
 
+import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from "framer-motion";
 import { FormEvent, useMemo, useState } from "react";
+import { AtlasAtmosphere } from "./AtlasAtmosphere";
 import { PantryMap, type PantryMapPoint } from "./PantryMap";
 
 type PublicIngredient = {
@@ -73,8 +75,13 @@ export function PantryInputExperience() {
   const [analysis, setAnalysis] = useState<RecommendResponse | null>(null);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const reduceMotion = useReducedMotion();
   const topRecommendation = analysis?.recommendations[0];
-  const hasResults = Boolean(analysis);
+  const matchedNames = useMemo(
+    () => analysis?.matched.map((item) => humanize(item.ingredient.name)) ?? [],
+    [analysis],
+  );
+  const mapPoints = useMemo(() => buildMapPoints(analysis), [analysis]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -102,156 +109,218 @@ export function PantryInputExperience() {
     }
   }
 
-  const matchedNames = useMemo(
-    () => analysis?.matched.map((item) => humanize(item.ingredient.name)) ?? [],
-    [analysis],
-  );
-  const mapPoints = useMemo(() => buildMapPoints(analysis), [analysis]);
-
   return (
-    <main className="min-h-screen bg-[#f8f6f0] text-[#1f2520]">
-      <div className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-8 px-5 py-6 sm:px-8 lg:px-10">
-        <header className="flex flex-col gap-3 border-b border-[#ded8c8] pb-5 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-sm font-medium uppercase tracking-[0.2em] text-[#6d765f]">
+    <LayoutGroup>
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-white focus:px-4 focus:py-3 focus:text-sm focus:font-bold focus:text-[#050505]"
+      >
+        Skip to main content
+      </a>
+      <main id="main" tabIndex={-1} className="relative min-h-screen text-white">
+        <AtlasAtmosphere />
+        <div className="mx-auto flex min-h-screen w-full max-w-[1320px] flex-col px-4 py-5 sm:px-6 lg:px-8">
+          <header className="flex min-h-14 items-center justify-between border-b border-white/10">
+            <a
+              href="#pantry-workbench"
+              className="text-sm font-semibold uppercase text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+            >
               Larder Atlas
-            </p>
-            <h1 className="mt-2 max-w-2xl text-4xl font-semibold tracking-tight text-[#182019] sm:text-5xl">
-              Map what is on hand. Find what unlocks dinner.
-            </h1>
-          </div>
-          <p className="max-w-sm text-sm leading-6 text-[#596153]">
-            Powered by Epicure ingredient embeddings and no-cost template
-            explanations. AI narrator comes later.
-          </p>
-        </header>
+            </a>
+            <div className="hidden items-center gap-7 text-sm font-semibold uppercase text-white/52 sm:flex">
+              <a href="#pantry-workbench" className="transition hover:text-white">
+                Build
+              </a>
+              <a href="#atlas" className="transition hover:text-white">
+                Atlas
+              </a>
+              <a href="#top-buys" className="transition hover:text-white">
+                Buys
+              </a>
+            </div>
+          </header>
 
-        <section className="grid gap-6 lg:grid-cols-[0.95fr_1.25fr]">
-          <form
-            onSubmit={handleSubmit}
-            className="flex flex-col gap-5 rounded-lg border border-[#ded8c8] bg-[#fffdf8] p-5 shadow-sm"
-          >
-            <div>
-              <label
-                htmlFor="pantry"
-                className="text-sm font-semibold text-[#2e372d]"
-              >
-                What is in your kitchen?
+          <section className="grid gap-10 border-b border-white/10 py-10 lg:min-h-[680px] lg:grid-cols-[minmax(0,1fr)_420px] lg:items-end lg:py-16">
+            <div className="max-w-5xl">
+              <p className="text-xs font-semibold uppercase text-[#ff1fd6]">
+                Epicure system
+              </p>
+              <h1 className="mt-6 max-w-5xl text-6xl font-semibold leading-[0.9] text-white sm:text-8xl lg:text-9xl">
+                Map the next ingredient.
+              </h1>
+              <div className="mt-8 grid max-w-3xl gap-5 md:grid-cols-[1fr_220px] md:items-end">
+                <p className="text-xl leading-8 text-white/68 sm:text-2xl">
+                  Ingredients in. One useful buy out.
+                </p>
+                <div className="border-l border-white/12 pl-5 text-sm leading-6 text-white/46">
+                  Static Epicure data. Fast recommendations. No extra noise.
+                </div>
+              </div>
+            </div>
+
+            <motion.form
+              layout
+              id="pantry-workbench"
+              onSubmit={handleSubmit}
+              className="h-fit rounded-[28px] border border-white/12 bg-white/[0.06] p-4 backdrop-blur-xl sm:p-5"
+            >
+              <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                <p className="text-xs font-semibold uppercase text-white/52">
+                  Build
+                </p>
+                <span className="rounded-full border border-[#ff1fd6]/40 bg-[#ff1fd6]/12 px-3 py-1 text-xs font-semibold uppercase text-[#ffe0fb]">
+                  Live
+                </span>
+              </div>
+
+              <label htmlFor="pantry" className="mt-5 block text-sm font-semibold text-white">
+                Pantry
               </label>
               <textarea
                 id="pantry"
                 value={pantry}
                 onChange={(event) => setPantry(event.target.value)}
-                className="mt-3 min-h-36 w-full resize-none rounded-md border border-[#d8d0be] bg-white p-4 text-base leading-7 outline-none transition focus:border-[#62724f] focus:ring-4 focus:ring-[#62724f]/10"
+                className="mt-3 min-h-36 w-full resize-none rounded-3xl border border-white/10 bg-black/30 p-4 text-base leading-7 text-white outline-none transition placeholder:text-white/34 focus:border-white/34 focus:ring-4 focus:ring-[#ff1fd6]/18"
                 placeholder="rice, egg, cabbage, soy sauce"
               />
-            </div>
 
-            <div className="flex flex-wrap gap-2">
-              {samplePantries.map((sample) => (
-                <button
-                  key={sample}
-                  type="button"
-                  onClick={() => setPantry(sample)}
-                  className="rounded-full border border-[#d8d0be] px-3 py-1.5 text-sm text-[#596153] transition hover:border-[#62724f] hover:text-[#2e372d]"
-                >
-                  {sample}
-                </button>
-              ))}
-            </div>
-
-            <div>
-              <p className="text-sm font-semibold text-[#2e372d]">Goal</p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {pantryGoals.map((item) => {
-                  const isSelected = item.id === goal;
-
-                  return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => setGoal(item.id)}
-                      className={[
-                        "rounded-full border px-3 py-1.5 text-sm font-medium transition",
-                        isSelected
-                          ? "border-[#263421] bg-[#263421] text-white"
-                          : "border-[#d8d0be] text-[#596153] hover:border-[#62724f] hover:text-[#2e372d]",
-                      ].join(" ")}
-                    >
-                      {item.label}
-                    </button>
-                  );
-                })}
+              <div className="mt-4 flex flex-wrap gap-2">
+                {samplePantries.map((sample) => (
+                  <motion.button
+                    key={sample}
+                    type="button"
+                    onClick={() => setPantry(sample)}
+                    whileTap={reduceMotion ? undefined : { scale: 0.98 }}
+                    className="min-h-11 cursor-pointer rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-sm font-semibold text-white/58 transition hover:border-white/24 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                  >
+                    {sample}
+                  </motion.button>
+                ))}
               </div>
-            </div>
 
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="inline-flex h-12 items-center justify-center rounded-md bg-[#263421] px-5 text-sm font-semibold text-white transition hover:bg-[#34452d] disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {isLoading ? "Mapping pantry..." : "Analyze pantry"}
-            </button>
+              <div className="mt-5">
+                <p className="text-sm font-semibold text-white">Goal</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {pantryGoals.map((item) => {
+                    const isSelected = item.id === goal;
 
-            {error ? (
-              <p className="rounded-md bg-[#f8e8df] px-3 py-2 text-sm text-[#8a341f]">
-                {error}
-              </p>
-            ) : null}
-          </form>
-
-          <section className="grid gap-5">
-            <article className="rounded-lg border border-[#ded8c8] bg-[#fffdf8] p-5 shadow-sm">
-              <p className="text-sm font-semibold text-[#6d765f]">
-                Smartest buy
-              </p>
-              {topRecommendation ? (
-                <div className="mt-4">
-                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                    <h2 className="text-3xl font-semibold tracking-tight">
-                      {humanize(topRecommendation.ingredient.name)}
-                    </h2>
-                    <span className="w-fit rounded-full bg-[#e4ead7] px-3 py-1 text-sm font-medium text-[#3f5133]">
-                      score {topRecommendation.score.toFixed(3)}
-                    </span>
-                  </div>
-                  <p className="mt-4 max-w-2xl text-base leading-7 text-[#4f584b]">
-                    {analysis?.explanation}
-                  </p>
+                    return (
+                      <motion.button
+                        key={item.id}
+                        type="button"
+                        layout
+                        onClick={() => setGoal(item.id)}
+                        aria-pressed={isSelected}
+                        whileTap={reduceMotion ? undefined : { scale: 0.97 }}
+                        className={[
+                          "relative min-h-11 cursor-pointer rounded-full border px-3 py-1.5 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white",
+                          isSelected
+                            ? "border-white/24 text-[#050505]"
+                            : "border-white/10 bg-white/[0.04] text-white/58 hover:border-white/24 hover:text-white",
+                        ].join(" ")}
+                      >
+                        {isSelected ? (
+                          <motion.span
+                            layoutId="selected-goal"
+                            className="absolute inset-0 -z-10 rounded-full bg-white"
+                            transition={{ type: "spring", stiffness: 420, damping: 34 }}
+                          />
+                        ) : null}
+                        {item.label}
+                      </motion.button>
+                    );
+                  })}
                 </div>
-              ) : (
-                <EmptyState hasResults={hasResults} />
-              )}
-            </article>
+              </div>
 
-            <div className="grid gap-5 xl:grid-cols-2">
-              <article className="rounded-lg border border-[#ded8c8] bg-[#fffdf8] p-5 shadow-sm">
-                <SectionTitle title="Matched pantry" />
+              <motion.button
+                type="submit"
+                disabled={isLoading}
+                whileTap={reduceMotion || isLoading ? undefined : { scale: 0.98 }}
+                className="mt-5 inline-flex h-12 w-full cursor-pointer items-center justify-center rounded-full bg-white px-5 text-sm font-semibold uppercase text-[#050505] transition hover:bg-[#ffe0fb] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isLoading ? "Mapping pantry..." : "Analyze pantry"}
+              </motion.button>
+
+              <AnimatePresence>
+                {error ? (
+                  <motion.p
+                    role="alert"
+                    initial={{ opacity: 0, y: -6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    className="mt-4 rounded-2xl border border-[#ef4444]/30 bg-[#ef4444]/12 px-3 py-2 text-sm font-semibold text-[#fecdd3]"
+                  >
+                    {error}
+                  </motion.p>
+                ) : null}
+              </AnimatePresence>
+            </motion.form>
+          </section>
+
+          <section className="grid gap-5 border-b border-white/10 py-5 lg:grid-cols-[1.1fr_0.9fr]">
+            <motion.section
+              layout
+              className="min-h-[260px] rounded-[28px] border border-white/10 bg-white/[0.045] p-5 text-white backdrop-blur-xl"
+            >
+              <SectionLabel inverted>Smartest buy</SectionLabel>
+              <AnimatePresence mode="wait">
+                {topRecommendation ? (
+                  <motion.div
+                    key={topRecommendation.ingredient.nodeId}
+                    initial={reduceMotion ? false : { opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={reduceMotion ? undefined : { opacity: 0, y: -8 }}
+                    transition={{ type: "spring", stiffness: 280, damping: 26 }}
+                    className="mt-6"
+                  >
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <h2 className="max-w-3xl text-5xl font-semibold leading-[0.9] text-white sm:text-7xl">
+                        {humanize(topRecommendation.ingredient.name)}
+                      </h2>
+                      <span className="w-fit rounded-full border border-white/16 bg-white px-3 py-1 text-sm font-semibold text-[#050505]">
+                        {topRecommendation.score.toFixed(3)}
+                      </span>
+                    </div>
+                    <p className="mt-6 max-w-3xl text-lg leading-8 text-white/72">
+                      {analysis?.explanation}
+                    </p>
+                  </motion.div>
+                ) : (
+                  <p className="mt-6 max-w-2xl text-lg leading-8 text-white/72">
+                    Enter a few ingredients to get a practical first buy.
+                  </p>
+                )}
+              </AnimatePresence>
+            </motion.section>
+
+            <div className="grid gap-5">
+              <InfoPanel title="Matched pantry">
                 {matchedNames.length > 0 ? (
-                  <div className="mt-4 flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2">
                     {matchedNames.map((name) => (
-                      <span
+                      <motion.span
+                        layout
                         key={name}
-                        className="rounded-full bg-[#edf0e5] px-3 py-1.5 text-sm font-medium text-[#384632]"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="rounded-full border border-white/10 bg-white/[0.06] px-3 py-1.5 text-sm font-semibold text-white/72"
                       >
                         {name}
-                      </span>
+                      </motion.span>
                     ))}
                   </div>
                 ) : (
-                  <p className="mt-4 text-sm text-[#6d7568]">
-                    Add ingredients and run the analysis.
-                  </p>
+                  <p className="text-sm text-white/48">Waiting for analysis.</p>
                 )}
                 {analysis?.missing.length ? (
-                  <p className="mt-4 text-sm text-[#9a5a32]">
+                  <p className="mt-4 text-sm font-semibold text-[#f0d8ff]">
                     Not found yet: {analysis.missing.join(", ")}
                   </p>
                 ) : null}
-              </article>
+              </InfoPanel>
 
-              <article className="rounded-lg border border-[#ded8c8] bg-[#fffdf8] p-5 shadow-sm">
-                <SectionTitle title="Pantry shape" />
+              <InfoPanel title="Pantry shape">
                 <AffinityList
                   label="Cuisine"
                   items={analysis?.cuisineAffinity.map((item) => ({
@@ -266,82 +335,127 @@ export function PantryInputExperience() {
                     score: item.score,
                   }))}
                 />
-              </article>
+              </InfoPanel>
             </div>
           </section>
-        </section>
 
-        <section className="grid gap-5 rounded-lg border border-[#ded8c8] bg-[#fffdf8] p-5 shadow-sm lg:grid-cols-[1.35fr_0.65fr]">
-          <PantryMap points={mapPoints} />
-          <div className="flex flex-col justify-between gap-5">
-            <div>
-              <SectionTitle title="Atlas signal" />
-              <p className="mt-3 text-sm leading-6 text-[#596153]">
-                Your pantry cluster shows the cooking territory you already
-                occupy. The highlighted buys show nearby moves and wider jumps
-                from that starting point.
+          <section
+            id="atlas"
+            className="grid gap-5 border-b border-white/10 py-5 lg:grid-cols-[1fr_220px]"
+          >
+            <PantryMap points={mapPoints} />
+            <div className="grid content-start gap-3 sm:grid-cols-3 lg:grid-cols-1">
+              <AtlasMetric label="Pantry" value={analysis?.matched.length ?? 0} />
+              <AtlasMetric
+                label="Suggestions"
+                value={analysis?.recommendations.length ?? 0}
+              />
+              <AtlasMetric label="Mapped" value={mapPoints.length} />
+            </div>
+          </section>
+
+          <section id="top-buys" className="py-5">
+            <SectionLabel>Top buys</SectionLabel>
+            {analysis?.recommendations.length ? (
+              <motion.div layout className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                <AnimatePresence mode="popLayout">
+                  {analysis.recommendations.map((recommendation, index) => (
+                    <motion.article
+                      key={recommendation.ingredient.nodeId}
+                      layout
+                      initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={reduceMotion ? undefined : { opacity: 0, y: -8 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 320,
+                        damping: 28,
+                        delay: index * 0.025,
+                      }}
+                      className="rounded-[24px] border border-white/10 bg-white/[0.045] p-4 backdrop-blur-xl"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <h3 className="font-semibold text-white">
+                          {humanize(recommendation.ingredient.name)}
+                        </h3>
+                        <span className="rounded-full bg-white px-2 py-1 text-xs font-semibold text-[#050505]">
+                          {recommendation.score.toFixed(3)}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-sm font-semibold text-[#ff1fd6]">
+                        {humanize(recommendation.ingredient.primaryCategory)}
+                      </p>
+                      <ul className="mt-3 space-y-2 text-sm leading-5 text-white/56">
+                        {recommendation.reasons.map((reason) => (
+                          <li key={reason}>{reason}</li>
+                        ))}
+                      </ul>
+                    </motion.article>
+                  ))}
+                </AnimatePresence>
+              </motion.div>
+            ) : (
+              <p className="mt-4 text-sm text-white/48">
+                Recommendations will appear here after analysis.
               </p>
-            </div>
-            <div className="rounded-md bg-[#f4f7ed] p-4 text-sm leading-6 text-[#4f584b]">
-              Pantry items are teal. Recommended buys are amber. When a
-              recommendation lands close to your pantry cluster, it is a small
-              practical move; when it lands farther away, it opens a new
-              direction.
-            </div>
-          </div>
-        </section>
-
-        <section className="rounded-lg border border-[#ded8c8] bg-[#fffdf8] p-5 shadow-sm">
-          <SectionTitle title="Top buys" />
-          {analysis?.recommendations.length ? (
-            <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-              {analysis.recommendations.map((recommendation) => (
-                <article
-                  key={recommendation.ingredient.nodeId}
-                  className="rounded-md border border-[#e3ddcf] bg-white p-4"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <h3 className="font-semibold">
-                      {humanize(recommendation.ingredient.name)}
-                    </h3>
-                    <span className="rounded-full bg-[#f1eee4] px-2 py-1 text-xs font-medium text-[#596153]">
-                      {recommendation.score.toFixed(3)}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-sm text-[#6d7568]">
-                    {humanize(recommendation.ingredient.primaryCategory)}
-                  </p>
-                  <ul className="mt-3 space-y-2 text-sm leading-5 text-[#4f584b]">
-                    {recommendation.reasons.map((reason) => (
-                      <li key={reason}>{reason}</li>
-                    ))}
-                  </ul>
-                </article>
-              ))}
-            </div>
-          ) : (
-            <p className="mt-4 text-sm text-[#6d7568]">
-              Recommendations will appear here after analysis.
-            </p>
-          )}
-        </section>
-      </div>
-    </main>
+            )}
+          </section>
+        </div>
+      </main>
+    </LayoutGroup>
   );
 }
 
-function EmptyState({ hasResults }: { hasResults: boolean }) {
+function SectionLabel({
+  children,
+  inverted = false,
+}: {
+  children: React.ReactNode;
+  inverted?: boolean;
+}) {
   return (
-    <p className="mt-4 text-base leading-7 text-[#6d7568]">
-      {hasResults
-        ? "No recommendation yet. Try adding a few more everyday ingredients."
-        : "Enter a handful of ingredients to get the first useful addition."}
+    <p
+      className={[
+        "text-xs font-semibold uppercase",
+        inverted ? "text-white/58" : "text-[#ff1fd6]",
+      ].join(" ")}
+    >
+      {children}
     </p>
   );
 }
 
-function SectionTitle({ title }: { title: string }) {
-  return <h2 className="text-sm font-semibold text-[#6d765f]">{title}</h2>;
+function InfoPanel({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <article className="rounded-[28px] border border-white/10 bg-white/[0.045] p-5 backdrop-blur-xl">
+      <SectionLabel>{title}</SectionLabel>
+      <div className="mt-4">{children}</div>
+    </article>
+  );
+}
+
+function AtlasMetric({ label, value }: { label: string; value: number }) {
+  return (
+    <motion.div layout className="rounded-[24px] border border-white/10 bg-white/[0.045] p-4 backdrop-blur-xl">
+      <p className="text-xs font-semibold uppercase text-[#ff1fd6]">
+        {label}
+      </p>
+      <motion.p
+        key={value}
+        initial={{ opacity: 0, y: 4 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mt-2 text-4xl font-semibold text-white"
+      >
+        {value}
+      </motion.p>
+    </motion.div>
+  );
 }
 
 function AffinityList({
@@ -354,8 +468,8 @@ function AffinityList({
   const visibleItems = items?.slice(0, 3) ?? [];
 
   return (
-    <div className="mt-4">
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8c917f]">
+    <div className="mt-4 first:mt-0">
+      <p className="text-xs font-semibold uppercase text-white/42">
         {label}
       </p>
       {visibleItems.length ? (
@@ -363,15 +477,15 @@ function AffinityList({
           {visibleItems.map((item) => (
             <div
               key={item.name}
-              className="flex items-center justify-between gap-3 text-sm"
+              className="flex items-center justify-between gap-3 text-sm text-white/58"
             >
               <span>{humanize(item.name)}</span>
-              <span className="text-[#6d7568]">{Math.round(item.score * 100)}%</span>
+              <span className="font-semibold text-[#ff1fd6]">{Math.round(item.score * 100)}%</span>
             </div>
           ))}
         </div>
       ) : (
-        <p className="mt-2 text-sm text-[#6d7568]">Waiting for pantry input.</p>
+        <p className="mt-2 text-sm text-white/48">Waiting for analysis.</p>
       )}
     </div>
   );
