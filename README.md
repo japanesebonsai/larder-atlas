@@ -1,36 +1,74 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Larder Atlas
 
-## Getting Started
+Map what is on hand. Find what unlocks dinner.
 
-First, run the development server:
+Larder Atlas is a small Next.js app powered by static Epicure ingredient data. It turns a pantry list into matched ingredients, useful next buys, cuisine/category affinities, template explanations, and a focused ingredient atlas preview.
+
+## Stack
+
+- Next.js App Router
+- React and TypeScript
+- Tailwind CSS
+- Static Epicure CSV data
+- Serverless `/api/recommend` route
+- No paid AI dependency
+
+## Local Development
+
+Install dependencies:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Run the dev server:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm.cmd run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+On Windows PowerShell, `npm.cmd` avoids execution-policy issues with `npm.ps1`.
 
-## Learn More
+Open:
 
-To learn more about Next.js, take a look at the following resources:
+```text
+http://localhost:3000
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+If Next reports another dev server is already running, stop the PID it prints:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+taskkill /PID <PID_FROM_ERROR> /F
+```
 
-## Deploy on Vercel
+Then run the dev server again.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Verification
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm.cmd run typecheck
+npm.cmd run lint
+npm.cmd run build
+```
+
+## API Smoke Test
+
+With the dev server running:
+
+```powershell
+$body = @{ pantry = 'rice, egg, cabbage, soy sauce'; goal = 'japanese'; limit = 3 } | ConvertTo-Json
+Invoke-RestMethod -Uri http://localhost:3000/api/recommend -Method Post -ContentType 'application/json' -Body $body
+```
+
+The response should include matched ingredients, recommendations, cuisine/category affinity, atlas coordinates, and a template explanation.
+
+## Vercel Deployment
+
+This app is Vercel-friendly as-is:
+
+- The Epicure data is bundled in `data/epicure`.
+- The recommendation engine runs in a Next.js serverless route.
+- The browser response strips full embedding vectors.
+- No environment variables are required for the current no-AI version.
+
+Deploy with Vercel's default Next.js settings.
