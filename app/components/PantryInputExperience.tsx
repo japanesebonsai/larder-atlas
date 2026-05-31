@@ -42,6 +42,25 @@ type RecommendResponse = {
   explanation: string;
 };
 
+type PantryGoal =
+  | "more_meals"
+  | "less_boring"
+  | "east_asian"
+  | "japanese"
+  | "south_asian"
+  | "latin_american"
+  | "mediterranean";
+
+const pantryGoals: Array<{ id: PantryGoal; label: string }> = [
+  { id: "more_meals", label: "More meals" },
+  { id: "less_boring", label: "Less boring" },
+  { id: "east_asian", label: "East Asian" },
+  { id: "japanese", label: "Japanese" },
+  { id: "south_asian", label: "South Asian" },
+  { id: "latin_american", label: "Latin American" },
+  { id: "mediterranean", label: "Mediterranean" },
+];
+
 const samplePantries = [
   "rice, egg, cabbage, soy sauce",
   "tomato, onion, garlic, pasta",
@@ -50,6 +69,7 @@ const samplePantries = [
 
 export function PantryInputExperience() {
   const [pantry, setPantry] = useState(samplePantries[0]);
+  const [goal, setGoal] = useState<PantryGoal>("more_meals");
   const [analysis, setAnalysis] = useState<RecommendResponse | null>(null);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -67,7 +87,7 @@ export function PantryInputExperience() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ pantry, limit: 6 }),
+        body: JSON.stringify({ pantry, goal, limit: 6 }),
       });
 
       if (!response.ok) {
@@ -138,6 +158,31 @@ export function PantryInputExperience() {
                   {sample}
                 </button>
               ))}
+            </div>
+
+            <div>
+              <p className="text-sm font-semibold text-[#2e372d]">Goal</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {pantryGoals.map((item) => {
+                  const isSelected = item.id === goal;
+
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => setGoal(item.id)}
+                      className={[
+                        "rounded-full border px-3 py-1.5 text-sm font-medium transition",
+                        isSelected
+                          ? "border-[#263421] bg-[#263421] text-white"
+                          : "border-[#d8d0be] text-[#596153] hover:border-[#62724f] hover:text-[#2e372d]",
+                      ].join(" ")}
+                    >
+                      {item.label}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             <button

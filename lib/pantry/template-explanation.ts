@@ -1,7 +1,8 @@
-import type { PantryAnalysis, PantryRecommendation } from "./types";
+import type { PantryAnalysis, PantryGoal, PantryRecommendation } from "./types";
 
 export function buildTemplateExplanation(
   analysis: Omit<PantryAnalysis, "explanation">,
+  goal: PantryGoal = "more_meals",
 ): string {
   const top = analysis.recommendations[0];
 
@@ -18,11 +19,14 @@ export function buildTemplateExplanation(
   return [
     `Best buy: ${humanize(top.ingredient.name)}.`,
     `It fits with ${formatList(pantry)} and ${top.reasons[0]?.toLowerCase() ?? "adds a useful new direction"}.`,
+    goal !== "more_meals" ? `Goal: ${humanize(goal)}.` : "",
     cuisine
       ? `Your pantry is closest to ${humanize(cuisine)} cooking right now.`
       : "Your pantry has a flexible, cross-cuisine shape right now.",
     `Try: ${formatList(meals)}.`,
-  ].join(" ");
+  ]
+    .filter(Boolean)
+    .join(" ");
 }
 
 function mealIdeas(recommendation: PantryRecommendation, cuisine?: string): string[] {
