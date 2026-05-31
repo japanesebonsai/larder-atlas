@@ -15,12 +15,12 @@ type Star = {
 };
 
 const orbSize = 980;
-const orbColor = "#ec4899";
-const orbPositionX = 170;
-const orbPositionY = -320;
-const starColor = "#ffffff";
-const starColor2 = "#f7c948";
-const starBaseSize = 0.7;
+const orbColor = "#ff1fd6";
+const orbPositionX = 230;
+const orbPositionY = -260;
+const starColor = "#f8fafc";
+const starColor2 = "#ff6a00";
+const starBaseSize = 0.55;
 const starFuzziness = 0.2;
 const starCount = 72;
 
@@ -180,11 +180,11 @@ export function AtlasAtmosphere() {
   return (
     <div
       ref={containerRef}
-      className="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-[#f7f1e7]"
+      className="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-[#050505]"
     >
       <div
         ref={orbRef}
-        className="absolute left-1/2 rounded-full opacity-[0.24] blur-[105px] will-change-transform"
+        className="absolute left-1/2 rounded-full opacity-[0.28] blur-[120px] will-change-transform"
         style={{
           top: orbPositionY,
           width: orbSize,
@@ -197,8 +197,8 @@ export function AtlasAtmosphere() {
         ref={canvasRef}
         className="absolute left-0 top-0 h-full w-full will-change-transform"
       />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(247,201,72,0.16),transparent_30%),radial-gradient(circle_at_78%_16%,rgba(111,156,147,0.18),transparent_34%),linear-gradient(180deg,rgba(255,250,240,0.86),rgba(247,241,231,0.82)_55%,rgba(236,232,220,0.86))]" />
-      <div className="absolute inset-0 bg-[linear-gradient(115deg,rgba(21,21,21,0.035),transparent_30%,rgba(236,72,153,0.08)_58%,transparent_76%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_82%_6%,rgba(255,31,214,0.58),transparent_32%),radial-gradient(circle_at_64%_28%,rgba(153,0,255,0.38),transparent_34%),radial-gradient(circle_at_78%_76%,rgba(255,106,0,0.34),transparent_36%),linear-gradient(112deg,#050505_0%,#050505_31%,rgba(36,0,78,0.82)_48%,rgba(255,31,214,0.36)_72%,rgba(255,31,214,0.48)_100%)]" />
+      <div className="absolute inset-0 bg-[linear-gradient(115deg,rgba(255,255,255,0.06),transparent_25%,rgba(255,255,255,0.025)_52%,transparent_78%)]" />
     </div>
   );
 }

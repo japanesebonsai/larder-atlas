@@ -113,49 +113,47 @@ export function PantryInputExperience() {
     <LayoutGroup>
       <a
         href="#main"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-[#111111] focus:px-4 focus:py-3 focus:text-sm focus:font-bold focus:text-white"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-white focus:px-4 focus:py-3 focus:text-sm focus:font-bold focus:text-[#050505]"
       >
         Skip to main content
       </a>
-      <main id="main" tabIndex={-1} className="relative min-h-screen text-[#151515]">
+      <main id="main" tabIndex={-1} className="relative min-h-screen text-white">
         <AtlasAtmosphere />
-        <div className="mx-auto flex min-h-screen w-full max-w-[1400px] flex-col px-4 py-4 sm:px-6 lg:px-8">
-          <header className="flex min-h-16 items-center justify-between border-b border-[#151515]/15">
+        <div className="mx-auto flex min-h-screen w-full max-w-[1320px] flex-col px-4 py-5 sm:px-6 lg:px-8">
+          <header className="flex min-h-14 items-center justify-between border-b border-white/10">
             <a
               href="#pantry-workbench"
-              className="text-sm font-bold uppercase text-[#151515] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#151515]"
+              className="text-sm font-semibold uppercase text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
             >
               Larder Atlas
             </a>
-            <div className="hidden items-center gap-6 text-sm font-bold uppercase text-[#151515]/65 sm:flex">
-              <a href="#pantry-workbench" className="transition hover:text-[#151515]">
-                Workbench
+            <div className="hidden items-center gap-7 text-sm font-semibold uppercase text-white/52 sm:flex">
+              <a href="#pantry-workbench" className="transition hover:text-white">
+                Build
               </a>
-              <a href="#atlas" className="transition hover:text-[#151515]">
+              <a href="#atlas" className="transition hover:text-white">
                 Atlas
               </a>
-              <a href="#top-buys" className="transition hover:text-[#151515]">
+              <a href="#top-buys" className="transition hover:text-white">
                 Buys
               </a>
             </div>
           </header>
 
-          <section className="grid gap-8 border-b border-[#151515]/15 py-8 lg:min-h-[620px] lg:grid-cols-[minmax(0,1.05fr)_420px] lg:items-end lg:py-12">
+          <section className="grid gap-10 border-b border-white/10 py-10 lg:min-h-[680px] lg:grid-cols-[minmax(0,1fr)_420px] lg:items-end lg:py-16">
             <div className="max-w-5xl">
-              <p className="text-xs font-bold uppercase text-[#d82f86]">
-                Larder Atlas
+              <p className="text-xs font-semibold uppercase text-[#ff6a00]">
+                Epicure system
               </p>
-              <h1 className="mt-4 max-w-5xl text-6xl font-bold uppercase leading-[0.78] text-[#151515] sm:text-8xl lg:text-9xl [font-family:var(--font-display)]">
-                Pantry, mapped.
+              <h1 className="mt-6 max-w-5xl text-6xl font-semibold leading-[0.9] text-white sm:text-8xl lg:text-9xl">
+                Map the next ingredient.
               </h1>
-              <div className="mt-8 grid max-w-4xl gap-5 md:grid-cols-[1fr_260px] md:items-end">
-                <p className="text-xl leading-8 text-[#2f2f2f] sm:text-2xl">
-                  A compact ingredient workbench for turning what you already
-                  have into the next useful buy.
+              <div className="mt-8 grid max-w-3xl gap-5 md:grid-cols-[1fr_220px] md:items-end">
+                <p className="text-xl leading-8 text-white/68 sm:text-2xl">
+                  Ingredients in. One useful buy out.
                 </p>
-                <div className="border-l border-[#151515]/20 pl-5 text-sm leading-6 text-[#4b4b4b]">
-                  Epicure data gives the structure. Larder Atlas makes the next
-                  move visible.
+                <div className="border-l border-white/12 pl-5 text-sm leading-6 text-white/46">
+                  Static Epicure data. Fast recommendations. No extra noise.
                 </div>
               </div>
             </div>
@@ -164,25 +162,25 @@ export function PantryInputExperience() {
               layout
               id="pantry-workbench"
               onSubmit={handleSubmit}
-              className="h-fit border border-[#151515]/20 bg-[#fffaf0]/88 p-4 shadow-[10px_10px_0_#151515] backdrop-blur-md sm:p-5"
+              className="h-fit rounded-[28px] border border-white/12 bg-white/[0.06] p-4 backdrop-blur-xl sm:p-5"
             >
-              <div className="flex items-center justify-between border-b border-[#151515]/15 pb-4">
-                <p className="text-xs font-bold uppercase text-[#151515]/65">
-                  Workbench
+              <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                <p className="text-xs font-semibold uppercase text-white/52">
+                  Build
                 </p>
-                <span className="rounded-full bg-[#151515] px-3 py-1 text-xs font-bold uppercase text-white">
+                <span className="rounded-full border border-[#ff1fd6]/40 bg-[#ff1fd6]/12 px-3 py-1 text-xs font-semibold uppercase text-[#ffe0fb]">
                   Live
                 </span>
               </div>
 
-              <label htmlFor="pantry" className="mt-5 block text-sm font-bold text-[#151515]">
-                Pantry ingredients
+              <label htmlFor="pantry" className="mt-5 block text-sm font-semibold text-white">
+                Pantry
               </label>
               <textarea
                 id="pantry"
                 value={pantry}
                 onChange={(event) => setPantry(event.target.value)}
-                className="mt-3 min-h-36 w-full resize-none border border-[#151515]/20 bg-white/78 p-4 text-base leading-7 text-[#151515] outline-none transition placeholder:text-[#777] focus:border-[#151515] focus:ring-4 focus:ring-[#ec4899]/18"
+                className="mt-3 min-h-36 w-full resize-none rounded-3xl border border-white/10 bg-black/30 p-4 text-base leading-7 text-white outline-none transition placeholder:text-white/34 focus:border-white/34 focus:ring-4 focus:ring-[#ff1fd6]/18"
                 placeholder="rice, egg, cabbage, soy sauce"
               />
 
@@ -193,7 +191,7 @@ export function PantryInputExperience() {
                     type="button"
                     onClick={() => setPantry(sample)}
                     whileTap={reduceMotion ? undefined : { scale: 0.98 }}
-                    className="min-h-11 cursor-pointer rounded-full border border-[#151515]/18 bg-white/72 px-3 py-1.5 text-sm font-semibold text-[#3f3f3f] transition hover:border-[#151515] hover:text-[#151515] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#151515]"
+                    className="min-h-11 cursor-pointer rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-sm font-semibold text-white/58 transition hover:border-white/24 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                   >
                     {sample}
                   </motion.button>
@@ -201,7 +199,7 @@ export function PantryInputExperience() {
               </div>
 
               <div className="mt-5">
-                <p className="text-sm font-bold text-[#151515]">Goal</p>
+                <p className="text-sm font-semibold text-white">Goal</p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {pantryGoals.map((item) => {
                     const isSelected = item.id === goal;
@@ -215,16 +213,16 @@ export function PantryInputExperience() {
                         aria-pressed={isSelected}
                         whileTap={reduceMotion ? undefined : { scale: 0.97 }}
                         className={[
-                          "relative min-h-11 cursor-pointer rounded-full border px-3 py-1.5 text-sm font-bold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#151515]",
+                          "relative min-h-11 cursor-pointer rounded-full border px-3 py-1.5 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white",
                           isSelected
-                            ? "border-[#151515] text-white"
-                            : "border-[#151515]/18 bg-white/70 text-[#3f3f3f] hover:border-[#151515] hover:text-[#151515]",
+                            ? "border-white/24 text-[#050505]"
+                            : "border-white/10 bg-white/[0.04] text-white/58 hover:border-white/24 hover:text-white",
                         ].join(" ")}
                       >
                         {isSelected ? (
                           <motion.span
                             layoutId="selected-goal"
-                            className="absolute inset-0 -z-10 rounded-full bg-[#151515]"
+                            className="absolute inset-0 -z-10 rounded-full bg-white"
                             transition={{ type: "spring", stiffness: 420, damping: 34 }}
                           />
                         ) : null}
@@ -239,7 +237,7 @@ export function PantryInputExperience() {
                 type="submit"
                 disabled={isLoading}
                 whileTap={reduceMotion || isLoading ? undefined : { scale: 0.98 }}
-                className="mt-5 inline-flex h-12 w-full cursor-pointer items-center justify-center bg-[#ec4899] px-5 text-sm font-bold uppercase text-white shadow-[5px_5px_0_#151515] transition hover:bg-[#d82f86] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#151515] disabled:cursor-not-allowed disabled:opacity-60"
+                className="mt-5 inline-flex h-12 w-full cursor-pointer items-center justify-center rounded-full bg-white px-5 text-sm font-semibold uppercase text-[#050505] transition hover:bg-[#ffe0fb] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isLoading ? "Mapping pantry..." : "Analyze pantry"}
               </motion.button>
@@ -251,7 +249,7 @@ export function PantryInputExperience() {
                     initial={{ opacity: 0, y: -6 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -6 }}
-                    className="mt-4 border border-[#9f1d35]/25 bg-[#ffe1e7] px-3 py-2 text-sm font-semibold text-[#7b1730]"
+                    className="mt-4 rounded-2xl border border-[#ef4444]/30 bg-[#ef4444]/12 px-3 py-2 text-sm font-semibold text-[#fecdd3]"
                   >
                     {error}
                   </motion.p>
@@ -260,10 +258,10 @@ export function PantryInputExperience() {
             </motion.form>
           </section>
 
-          <section className="grid gap-5 border-b border-[#151515]/15 py-5 lg:grid-cols-[1.1fr_0.9fr]">
+          <section className="grid gap-5 border-b border-white/10 py-5 lg:grid-cols-[1.1fr_0.9fr]">
             <motion.section
               layout
-              className="min-h-[260px] border border-[#151515]/15 bg-[#151515] p-5 text-white shadow-[8px_8px_0_rgba(236,72,153,0.35)]"
+              className="min-h-[260px] rounded-[28px] border border-white/10 bg-white/[0.045] p-5 text-white backdrop-blur-xl"
             >
               <SectionLabel inverted>Smartest buy</SectionLabel>
               <AnimatePresence mode="wait">
@@ -277,10 +275,10 @@ export function PantryInputExperience() {
                     className="mt-6"
                   >
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                      <h2 className="max-w-3xl text-5xl font-bold uppercase leading-[0.9] text-white sm:text-7xl [font-family:var(--font-display)]">
+                      <h2 className="max-w-3xl text-5xl font-semibold leading-[0.9] text-white sm:text-7xl">
                         {humanize(topRecommendation.ingredient.name)}
                       </h2>
-                      <span className="w-fit rounded-full border border-white/25 bg-white px-3 py-1 text-sm font-bold text-[#151515]">
+                      <span className="w-fit rounded-full border border-white/16 bg-white px-3 py-1 text-sm font-semibold text-[#050505]">
                         {topRecommendation.score.toFixed(3)}
                       </span>
                     </div>
@@ -306,17 +304,17 @@ export function PantryInputExperience() {
                         key={name}
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="rounded-full border border-[#151515]/15 bg-white px-3 py-1.5 text-sm font-bold text-[#151515]"
+                        className="rounded-full border border-white/10 bg-white/[0.06] px-3 py-1.5 text-sm font-semibold text-white/72"
                       >
                         {name}
                       </motion.span>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-[#5a5a5a]">Waiting for analysis.</p>
+                  <p className="text-sm text-white/48">Waiting for analysis.</p>
                 )}
                 {analysis?.missing.length ? (
-                  <p className="mt-4 text-sm font-semibold text-[#8a4c14]">
+                  <p className="mt-4 text-sm font-semibold text-[#ffb56f]">
                     Not found yet: {analysis.missing.join(", ")}
                   </p>
                 ) : null}
@@ -343,7 +341,7 @@ export function PantryInputExperience() {
 
           <section
             id="atlas"
-            className="grid gap-5 border-b border-[#151515]/15 py-5 lg:grid-cols-[1fr_220px]"
+            className="grid gap-5 border-b border-white/10 py-5 lg:grid-cols-[1fr_220px]"
           >
             <PantryMap points={mapPoints} />
             <div className="grid content-start gap-3 sm:grid-cols-3 lg:grid-cols-1">
@@ -374,20 +372,20 @@ export function PantryInputExperience() {
                         damping: 28,
                         delay: index * 0.025,
                       }}
-                      className="border border-[#151515]/15 bg-[#fffaf0]/84 p-4 shadow-[4px_4px_0_rgba(21,21,21,0.12)]"
+                      className="rounded-[24px] border border-white/10 bg-white/[0.045] p-4 backdrop-blur-xl"
                     >
                       <div className="flex items-start justify-between gap-3">
-                        <h3 className="font-bold text-[#151515]">
+                        <h3 className="font-semibold text-white">
                           {humanize(recommendation.ingredient.name)}
                         </h3>
-                        <span className="rounded-full bg-[#151515] px-2 py-1 text-xs font-bold text-white">
+                        <span className="rounded-full bg-white px-2 py-1 text-xs font-semibold text-[#050505]">
                           {recommendation.score.toFixed(3)}
                         </span>
                       </div>
-                      <p className="mt-1 text-sm font-bold text-[#d82f86]">
+                      <p className="mt-1 text-sm font-semibold text-[#ff6a00]">
                         {humanize(recommendation.ingredient.primaryCategory)}
                       </p>
-                      <ul className="mt-3 space-y-2 text-sm leading-5 text-[#4b4b4b]">
+                      <ul className="mt-3 space-y-2 text-sm leading-5 text-white/56">
                         {recommendation.reasons.map((reason) => (
                           <li key={reason}>{reason}</li>
                         ))}
@@ -397,7 +395,7 @@ export function PantryInputExperience() {
                 </AnimatePresence>
               </motion.div>
             ) : (
-              <p className="mt-4 text-sm text-[#5a5a5a]">
+              <p className="mt-4 text-sm text-white/48">
                 Recommendations will appear here after analysis.
               </p>
             )}
@@ -418,8 +416,8 @@ function SectionLabel({
   return (
     <p
       className={[
-        "text-xs font-bold uppercase",
-        inverted ? "text-white/60" : "text-[#d82f86]",
+        "text-xs font-semibold uppercase",
+        inverted ? "text-white/58" : "text-[#ff6a00]",
       ].join(" ")}
     >
       {children}
@@ -435,7 +433,7 @@ function InfoPanel({
   children: React.ReactNode;
 }) {
   return (
-    <article className="border border-[#151515]/15 bg-[#fffaf0]/82 p-5 shadow-[5px_5px_0_rgba(21,21,21,0.1)] backdrop-blur-md">
+    <article className="rounded-[28px] border border-white/10 bg-white/[0.045] p-5 backdrop-blur-xl">
       <SectionLabel>{title}</SectionLabel>
       <div className="mt-4">{children}</div>
     </article>
@@ -444,15 +442,15 @@ function InfoPanel({
 
 function AtlasMetric({ label, value }: { label: string; value: number }) {
   return (
-    <motion.div layout className="border border-[#151515]/15 bg-[#fffaf0]/84 p-4 shadow-[4px_4px_0_rgba(21,21,21,0.1)]">
-      <p className="text-xs font-bold uppercase text-[#d82f86]">
+    <motion.div layout className="rounded-[24px] border border-white/10 bg-white/[0.045] p-4 backdrop-blur-xl">
+      <p className="text-xs font-semibold uppercase text-[#ff6a00]">
         {label}
       </p>
       <motion.p
         key={value}
         initial={{ opacity: 0, y: 4 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mt-2 text-4xl font-bold text-[#151515] [font-family:var(--font-display)]"
+        className="mt-2 text-4xl font-semibold text-white"
       >
         {value}
       </motion.p>
@@ -471,7 +469,7 @@ function AffinityList({
 
   return (
     <div className="mt-4 first:mt-0">
-      <p className="text-xs font-bold uppercase text-[#151515]/52">
+      <p className="text-xs font-semibold uppercase text-white/42">
         {label}
       </p>
       {visibleItems.length ? (
@@ -479,15 +477,15 @@ function AffinityList({
           {visibleItems.map((item) => (
             <div
               key={item.name}
-              className="flex items-center justify-between gap-3 text-sm text-[#4b4b4b]"
+              className="flex items-center justify-between gap-3 text-sm text-white/58"
             >
               <span>{humanize(item.name)}</span>
-              <span className="font-bold text-[#d82f86]">{Math.round(item.score * 100)}%</span>
+              <span className="font-semibold text-[#ff1fd6]">{Math.round(item.score * 100)}%</span>
             </div>
           ))}
         </div>
       ) : (
-        <p className="mt-2 text-sm text-[#5a5a5a]">Waiting for analysis.</p>
+        <p className="mt-2 text-sm text-white/48">Waiting for analysis.</p>
       )}
     </div>
   );
