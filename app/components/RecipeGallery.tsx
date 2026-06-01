@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import {
   buildTemplateRecipes,
+  type TemplateRecipe,
   type RecipeIngredient,
 } from "@/lib/pantry/recipe-template";
 
@@ -15,6 +17,43 @@ type RecipeGalleryProps = {
 
 export function RecipeGallery({ pantry, recommendations }: RecipeGalleryProps) {
   const recipes = buildTemplateRecipes({ pantry, recommendations });
+  const [images, setImages] = useState<Record<string, string>>({});
+  const [loadingId, setLoadingId] = useState("");
+  const [errorById, setErrorById] = useState<Record<string, string>>({});
+
+  async function generateImage(recipe: TemplateRecipe) {
+    setLoadingId(recipe.id);
+    setErrorById((current) => ({ ...current, [recipe.id]: "" }));
+
+    try {
+      const response = await fetch("/api/recipe-image", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: recipe.title,
+          ingredients: recipe.ingredients,
+          cuisine: recipe.cuisine,
+          type: recipe.type,
+        }),
+      });
+      const payload = await response.json();
+
+      if (!response.ok || !payload.image) {
+        throw new Error(payload.message ?? payload.error ?? "Image generation failed.");
+      }
+
+      setImages((current) => ({ ...current, [recipe.id]: payload.image }));
+    } catch (caught) {
+      setErrorById((current) => ({
+        ...current,
+        [recipe.id]: caught instanceof Error ? caught.message : "Image generation failed.",
+      }));
+    } finally {
+      setLoadingId("");
+    }
+  }
 
   return (
     <section id="recipes" className="border-b border-[var(--app-border)] py-5">
@@ -40,6 +79,37 @@ export function RecipeGallery({ pantry, recommendations }: RecipeGalleryProps) {
               key={recipe.id}
               className="rounded-[28px] border border-[var(--app-border)] bg-[var(--app-surface)] p-5 backdrop-blur-xl"
             >
+              <div className="mb-5 overflow-hidden rounded-[24px] border border-[var(--app-border)] bg-[var(--app-field)]">
+                {images[recipe.id] ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={images[recipe.id]}
+                    alt=""
+                    className="aspect-[16/9] w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex aspect-[16/9] flex-col items-center justify-center gap-3 px-5 text-center">
+                    <p className="max-w-xs text-sm leading-6 text-[var(--app-text-faint)]">
+                      Optional AI image generation can create a visual for this
+                      recipe when Cloudflare Workers AI is configured.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => generateImage(recipe)}
+                      disabled={loadingId === recipe.id}
+                      className="min-h-10 cursor-pointer rounded-full border border-[var(--app-border)] bg-[var(--app-inverse)] px-4 text-sm font-semibold text-[var(--app-inverse-text)] transition hover:bg-[var(--app-accent-soft)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-text)] disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {loadingId === recipe.id ? "Generating..." : "Generate image"}
+                    </button>
+                    {errorById[recipe.id] ? (
+                      <p className="text-xs leading-5 text-[var(--app-danger-text)]">
+                        {errorById[recipe.id]}
+                      </p>
+                    ) : null}
+                  </div>
+                )}
+              </div>
+
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <p className="text-xs font-semibold uppercase text-[var(--app-text-faint)]">
