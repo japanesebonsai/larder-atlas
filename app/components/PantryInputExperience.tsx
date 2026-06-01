@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from "framer-motion";
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { AtlasAtmosphere } from "./AtlasAtmosphere";
 import { PantryMap, type PantryMapPoint } from "./PantryMap";
 
@@ -78,7 +78,9 @@ export function PantryInputExperience({ ingredientNames }: { ingredientNames: st
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [selectedPointId, setSelectedPointId] = useState<string>("");
+  const [isMounted, setIsMounted] = useState(false);
   const reduceMotion = useReducedMotion();
+  const shouldAnimate = isMounted && !reduceMotion;
   const topRecommendation = analysis?.recommendations[0];
   const matchedNames = useMemo(
     () => analysis?.matched.map((item) => humanize(item.ingredient.name)) ?? [],
@@ -109,6 +111,12 @@ export function PantryInputExperience({ ingredientNames }: { ingredientNames: st
         ingredientSuggestions.length,
     );
   }, [ingredientDraft, ingredientNames, ingredientSuggestions.length]);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => setIsMounted(true), 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, []);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -279,9 +287,9 @@ export function PantryInputExperience({ ingredientNames }: { ingredientNames: st
                     <motion.div
                       id="ingredient-suggestions"
                       role="listbox"
-                      initial={reduceMotion ? false : { opacity: 0, y: -4 }}
+                      initial={shouldAnimate ? { opacity: 0, y: -4 } : false}
                       animate={{ opacity: 1, y: 0 }}
-                      exit={reduceMotion ? undefined : { opacity: 0, y: -4 }}
+                      exit={shouldAnimate ? { opacity: 0, y: -4 } : undefined}
                       className="absolute left-0 right-20 top-13 z-30 overflow-hidden rounded-3xl border border-white/10 bg-[#101014]/96 p-1 shadow-2xl shadow-black/40 backdrop-blur-xl"
                     >
                       {ingredientSuggestions.map((name) => (
@@ -313,7 +321,7 @@ export function PantryInputExperience({ ingredientNames }: { ingredientNames: st
                     key={sample}
                     type="button"
                     onClick={() => setPantry(sample)}
-                    whileTap={reduceMotion ? undefined : { scale: 0.98 }}
+                    whileTap={shouldAnimate ? { scale: 0.98 } : undefined}
                     className="min-h-11 cursor-pointer rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-sm font-semibold text-white/58 transition hover:border-white/24 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                   >
                     {sample}
@@ -334,7 +342,7 @@ export function PantryInputExperience({ ingredientNames }: { ingredientNames: st
                         layout
                         onClick={() => setGoal(item.id)}
                         aria-pressed={isSelected}
-                        whileTap={reduceMotion ? undefined : { scale: 0.97 }}
+                        whileTap={shouldAnimate ? { scale: 0.97 } : undefined}
                         className={[
                           "relative min-h-11 cursor-pointer rounded-full border px-3 py-1.5 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white",
                           isSelected
@@ -359,7 +367,7 @@ export function PantryInputExperience({ ingredientNames }: { ingredientNames: st
               <motion.button
                 type="submit"
                 disabled={isLoading}
-                whileTap={reduceMotion || isLoading ? undefined : { scale: 0.98 }}
+                whileTap={shouldAnimate && !isLoading ? { scale: 0.98 } : undefined}
                 className="mt-5 inline-flex h-12 w-full cursor-pointer items-center justify-center rounded-full bg-white px-5 text-sm font-semibold uppercase text-[#050505] transition hover:bg-[#ffe0fb] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isLoading ? "Mapping pantry..." : "Analyze pantry"}
@@ -391,9 +399,9 @@ export function PantryInputExperience({ ingredientNames }: { ingredientNames: st
                 {topRecommendation ? (
                   <motion.div
                     key={topRecommendation.ingredient.nodeId}
-                    initial={reduceMotion ? false : { opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={reduceMotion ? undefined : { opacity: 0, y: -8 }}
+                      initial={shouldAnimate ? { opacity: 0, y: 10 } : false}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={shouldAnimate ? { opacity: 0, y: -8 } : undefined}
                     transition={{ type: "spring", stiffness: 280, damping: 26 }}
                     className="mt-6"
                   >
@@ -495,9 +503,9 @@ export function PantryInputExperience({ ingredientNames }: { ingredientNames: st
                     <motion.article
                       key={recommendation.ingredient.nodeId}
                       layout
-                      initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+                      initial={shouldAnimate ? { opacity: 0, y: 12 } : false}
                       animate={{ opacity: 1, y: 0 }}
-                      exit={reduceMotion ? undefined : { opacity: 0, y: -8 }}
+                      exit={shouldAnimate ? { opacity: 0, y: -8 } : undefined}
                       transition={{
                         type: "spring",
                         stiffness: 320,
