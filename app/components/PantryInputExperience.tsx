@@ -78,6 +78,7 @@ export function PantryInputExperience({ ingredientNames }: { ingredientNames: st
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [selectedPointId, setSelectedPointId] = useState<string>("");
+  const [lastResponseMs, setLastResponseMs] = useState<number | null>(null);
   const [isMounted, setIsMounted] = useState(false);
   const reduceMotion = useReducedMotion();
   const shouldAnimate = isMounted && !reduceMotion;
@@ -124,6 +125,7 @@ export function PantryInputExperience({ ingredientNames }: { ingredientNames: st
     setError("");
 
     try {
+      const startedAt = performance.now();
       const response = await fetch("/api/recommend", {
         method: "POST",
         headers: {
@@ -136,6 +138,7 @@ export function PantryInputExperience({ ingredientNames }: { ingredientNames: st
         throw new Error("The pantry could not be analyzed.");
       }
 
+      setLastResponseMs(Math.round(performance.now() - startedAt));
       setAnalysis(await response.json());
       setSelectedPointId("");
     } catch (caught) {
@@ -485,6 +488,10 @@ export function PantryInputExperience({ ingredientNames }: { ingredientNames: st
                 selectedPointId={selectedPointId}
                 onSelectPoint={setSelectedPointId}
               />
+              <AppMetrics
+                ingredientCount={ingredientNames.length}
+                lastResponseMs={lastResponseMs}
+              />
               <AtlasMetric label="Pantry" value={analysis?.matched.length ?? 0} />
               <AtlasMetric
                 label="Suggestions"
@@ -671,6 +678,41 @@ function IngredientList({
         ) : null}
       </div>
     </article>
+  );
+}
+
+function AppMetrics({
+  ingredientCount,
+  lastResponseMs,
+}: {
+  ingredientCount: number;
+  lastResponseMs: number | null;
+}) {
+  return (
+    <article className="rounded-[24px] border border-white/10 bg-white/[0.045] p-4 backdrop-blur-xl sm:col-span-3 lg:col-span-1">
+      <SectionLabel>App metrics</SectionLabel>
+      <div className="mt-4 grid gap-3">
+        <MetricRow label="Ingredients" value={ingredientCount.toLocaleString()} />
+        <MetricRow label="Model calls" value="0" />
+        <MetricRow label="Data mode" value="Static" />
+        <MetricRow
+          label="Last response"
+          value={lastResponseMs === null ? "Not measured" : `${lastResponseMs} ms`}
+        />
+      </div>
+      <p className="mt-4 text-xs leading-5 text-white/38">
+        These measure Larder Atlas using bundled Epicure data.
+      </p>
+    </article>
+  );
+}
+
+function MetricRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between gap-3 border-b border-white/8 pb-2 last:border-b-0 last:pb-0">
+      <span className="text-xs font-semibold uppercase text-white/38">{label}</span>
+      <span className="text-sm font-semibold text-white">{value}</span>
+    </div>
   );
 }
 
