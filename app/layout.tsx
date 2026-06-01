@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Karla, Playfair_Display_SC } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import "@xyflow/react/dist/style.css";
 import "./globals.css";
 
@@ -35,7 +36,10 @@ export default function RootLayout({
       lang="en"
       className={`${karla.variable} ${playfair.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        <Analytics />
+      </body>
     </html>
   );
 }
