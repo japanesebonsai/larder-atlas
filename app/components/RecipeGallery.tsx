@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   buildTemplateRecipes,
   type TemplateRecipe,
@@ -15,11 +15,22 @@ type RecipeGalleryProps = {
   }>;
 };
 
+const imageCacheKey = "larder-atlas-recipe-images";
+const maxCachedImages = 6;
+
 export function RecipeGallery({ pantry, recommendations }: RecipeGalleryProps) {
   const recipes = buildTemplateRecipes({ pantry, recommendations });
   const [images, setImages] = useState<Record<string, string>>({});
   const [loadingId, setLoadingId] = useState("");
   const [errorById, setErrorById] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setImages(readImageCache());
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, []);
 
   async function generateImage(recipe: TemplateRecipe) {
     setLoadingId(recipe.id);
@@ -44,7 +55,16 @@ export function RecipeGallery({ pantry, recommendations }: RecipeGalleryProps) {
         throw new Error(payload.message ?? payload.error ?? "Image generation failed.");
       }
 
-      setImages((current) => ({ ...current, [recipe.id]: payload.image }));
+      setImages((current) => {
+        const nextImages = trimImageCache({
+          ...current,
+          [recipe.id]: payload.image,
+        });
+
+        writeImageCache(nextImages);
+
+        return nextImages;
+      });
     } catch (caught) {
       setErrorById((current) => ({
         ...current,
@@ -81,12 +101,17 @@ export function RecipeGallery({ pantry, recommendations }: RecipeGalleryProps) {
             >
               <div className="mb-5 overflow-hidden rounded-[24px] border border-[var(--app-border)] bg-[var(--app-field)]">
                 {images[recipe.id] ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={images[recipe.id]}
-                    alt=""
-                    className="aspect-[16/9] w-full object-cover"
-                  />
+                  <div className="relative">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={images[recipe.id]}
+                      alt=""
+                      className="aspect-[16/9] w-full object-cover"
+                    />
+                    <div className="absolute bottom-3 left-3 flex items-center gap-2 rounded-full border border-white/20 bg-black/70 px-3 py-1 text-[11px] font-semibold uppercase text-white backdrop-blur">
+                      Cached image
+                    </div>
+                  </div>
                 ) : (
                   <div className="flex aspect-[16/9] flex-col items-center justify-center gap-3 px-5 text-center">
                     <p className="max-w-xs text-sm leading-6 text-[var(--app-text-faint)]">
@@ -157,4 +182,44 @@ export function RecipeGallery({ pantry, recommendations }: RecipeGalleryProps) {
       )}
     </section>
   );
+}
+
+function readImageCache() {
+  if (typeof window === "undefined") {
+    return {};
+  }
+
+  try {
+    const storedImages = window.localStorage.getItem(imageCacheKey);
+
+    if (!storedImages) {
+      return {};
+    }
+
+    const parsedImages = JSON.parse(storedImages);
+
+    if (!parsedImages || typeof parsedImages !== "object") {
+      return {};
+    }
+
+    return parsedImages as Record<string, string>;
+  } catch {
+    return {};
+  }
+}
+
+function writeImageCache(images: Record<string, string>) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    window.localStorage.setItem(imageCacheKey, JSON.stringify(trimImageCache(images)));
+  } catch {
+    window.localStorage.removeItem(imageCacheKey);
+  }
+}
+
+function trimImageCache(images: Record<string, string>) {
+  return Object.fromEntries(Object.entries(images).slice(-maxCachedImages));
 }

@@ -1,6 +1,10 @@
+import { Buffer } from "node:buffer";
 import { NextResponse } from "next/server";
 
 const defaultModel = "@cf/black-forest-labs/flux-1-schnell";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
   const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
