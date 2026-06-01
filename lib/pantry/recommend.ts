@@ -14,6 +14,17 @@ const CUISINE_GOALS: Partial<Record<PantryGoal, string>> = {
   latin_american: "Latin_American",
   mediterranean: "Mediterranean",
 };
+const SUBSTITUTE_CATEGORIES = new Set(["Meat", "Fish", "Seafood"]);
+const COMPLEMENT_CATEGORIES = new Set([
+  "Pantry",
+  "Vegetable",
+  "Grain",
+  "Spice",
+  "Herb",
+  "Fat/Oil",
+  "Dairy",
+  "Legume",
+]);
 
 export async function analyzePantry(input: PantryInput): Promise<PantryAnalysis> {
   const records = await loadEpicureRecords();
@@ -78,15 +89,16 @@ function scoreCandidate(
 ): PantryRecommendation {
   const similarity = cosineSimilarity(candidate.embedding?.vector ?? [], pantryCenter);
   const cuisineMatch = cuisines.has(candidate.tag?.cuisineRegion) ? 0.08 : 0;
-  const categoryMatch = categories.has(candidate.primaryCategory) ? 0.05 : 0;
-  const universalBoost = candidate.tag?.cuisineRegion === "universal" ? 0.03 : 0;
+  const categoryUtility = scoreCategoryUtility(candidate, categories, goal);
+  const universalBoost =
+    candidate.tag?.cuisineRegion === "universal" && categoryUtility >= 0 ? 0.03 : 0;
   const goalBoost = scoreGoalBoost(candidate, goal, cuisines, categories);
-  const score = round(similarity + cuisineMatch + categoryMatch + universalBoost + goalBoost);
+  const score = round(similarity + cuisineMatch + categoryUtility + universalBoost + goalBoost);
 
   return {
     ingredient: candidate,
     score,
-    reasons: buildReasons(candidate, similarity, cuisineMatch, categoryMatch, goalBoost, goal),
+    reasons: buildReasons(candidate, similarity, cuisineMatch, categoryUtility, goalBoost, goal),
   };
 }
 
@@ -94,7 +106,7 @@ function buildReasons(
   candidate: EpicureIngredientRecord,
   similarity: number,
   cuisineMatch: number,
-  categoryMatch: number,
+  categoryUtility: number,
   goalBoost: number,
   goal: PantryGoal,
 ): string[] {
@@ -112,8 +124,8 @@ function buildReasons(
     reasons.push(`supports ${humanize(candidate.tag?.cuisineRegion ?? "")} cooking`);
   }
 
-  if (categoryMatch > 0) {
-    reasons.push(`adds another ${humanize(candidate.primaryCategory).toLowerCase()} option`);
+  if (categoryUtility > 0) {
+    reasons.push(`adds a ${humanize(candidate.primaryCategory).toLowerCase()} lane`);
   }
 
   if (goalBoost > 0 && goal !== "less_boring") {
@@ -125,6 +137,32 @@ function buildReasons(
   }
 
   return reasons;
+}
+
+function scoreCategoryUtility(
+  candidate: EpicureIngredientRecord,
+  categories: Set<string>,
+  goal: PantryGoal,
+): number {
+  const hasCategory = categories.has(candidate.primaryCategory);
+
+  if (
+    hasCategory &&
+    SUBSTITUTE_CATEGORIES.has(candidate.primaryCategory) &&
+    goal !== "less_boring"
+  ) {
+    return -0.32;
+  }
+
+  if (hasCategory) {
+    return -0.08;
+  }
+
+  if (COMPLEMENT_CATEGORIES.has(candidate.primaryCategory)) {
+    return 0.08;
+  }
+
+  return 0.02;
 }
 
 function scoreGoalBoost(
