@@ -2,7 +2,9 @@
 
 Map what is on hand. Find what unlocks dinner.
 
-Larder Atlas is a small Next.js app powered by static Epicure ingredient data. It turns a pantry list into matched ingredients, useful next buys, cuisine/category affinities, template explanations, and a focused ingredient atlas preview.
+Larder Atlas is a small Next.js app powered by static Epicure ingredient data. It turns a pantry list into matched ingredients, useful next buys, cuisine/category affinities, template explanations, and a recursive ingredient atlas.
+
+Epicure provides the ingredient embedding space and metadata. Larder Atlas adds a practical recommendation layer on top of that data, tuned for pantry usefulness rather than pure similarity.
 
 ## Stack
 
@@ -12,6 +14,35 @@ Larder Atlas is a small Next.js app powered by static Epicure ingredient data. I
 - Static Epicure CSV data
 - Serverless `/api/recommend` route
 - No paid AI dependency
+
+## Architecture
+
+```text
+Next.js app
+  UI, pantry input, ingredient lookup, graph visualizer, About section
+
+Static Epicure data
+  Bundled ingredient list, tags, embeddings, and atlas coordinates
+
+Serverless recommendation API
+  Matches pantry text, scores candidates, returns recommendations
+
+Client visualizer
+  Recursive graph layout, ingredient list, app metrics, selectable nodes
+```
+
+The current app makes no live model call during recommendation. Recommendation responses are generated from bundled Epicure data and local deterministic scoring.
+
+## Recommendation Approach
+
+Larder Atlas uses Epicure ingredient embeddings as the base relationship map. It then applies a lightweight local scoring layer to rank practical next buys.
+
+This scoring layer intentionally favors complementary ingredients, such as herbs, spices, vegetables, grains, and pantry staples, over same-category substitutes like one meat replacing another. This is a Larder Atlas product heuristic designed for pantry usefulness. It is not a claim made by the Epicure paper.
+
+## References
+
+- [Epicure MCP](https://github.com/KAIKAKU-AI/epicure-mcp): public read-only MCP server for Epicure.
+- [Epicure paper](https://arxiv.org/abs/2605.22391): *Epicure: Navigating the Emergent Geometry of Food Ingredient Embeddings*.
 
 ## Local Development
 
