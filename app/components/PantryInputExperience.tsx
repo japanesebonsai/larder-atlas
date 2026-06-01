@@ -72,6 +72,7 @@ const samplePantries = [
 export function PantryInputExperience({ ingredientNames }: { ingredientNames: string[] }) {
   const [pantry, setPantry] = useState(samplePantries[0]);
   const [ingredientDraft, setIngredientDraft] = useState("");
+  const [isLookupOpen, setIsLookupOpen] = useState(false);
   const [goal, setGoal] = useState<PantryGoal>("more_meals");
   const [analysis, setAnalysis] = useState<RecommendResponse | null>(null);
   const [error, setError] = useState("");
@@ -84,6 +85,30 @@ export function PantryInputExperience({ ingredientNames }: { ingredientNames: st
     [analysis],
   );
   const mapPoints = useMemo(() => buildMapPoints(analysis), [analysis]);
+  const ingredientSuggestions = useMemo(() => {
+    const query = ingredientDraft.trim().toLowerCase();
+
+    if (query.length < 1) {
+      return [];
+    }
+
+    return ingredientNames
+      .filter((name) => name.toLowerCase().startsWith(query))
+      .slice(0, 6);
+  }, [ingredientDraft, ingredientNames]);
+  const hiddenSuggestionCount = useMemo(() => {
+    const query = ingredientDraft.trim().toLowerCase();
+
+    if (query.length < 1) {
+      return 0;
+    }
+
+    return Math.max(
+      0,
+      ingredientNames.filter((name) => name.toLowerCase().startsWith(query)).length -
+        ingredientSuggestions.length,
+    );
+  }, [ingredientDraft, ingredientNames, ingredientSuggestions.length]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -135,6 +160,7 @@ export function PantryInputExperience({ ingredientNames }: { ingredientNames: st
       return [...currentItems, nextIngredient].join(", ");
     });
     setIngredientDraft("");
+    setIsLookupOpen(false);
   }
 
   return (
@@ -212,19 +238,30 @@ export function PantryInputExperience({ ingredientNames }: { ingredientNames: st
                 placeholder="rice, egg, cabbage, soy sauce"
               />
 
-              <div className="mt-3 flex gap-2">
+              <div className="relative mt-3 flex gap-2">
                 <label htmlFor="ingredient-lookup" className="sr-only">
                   Add ingredient
                 </label>
                 <input
                   id="ingredient-lookup"
-                  list="epicure-ingredients"
                   value={ingredientDraft}
-                  onChange={(event) => setIngredientDraft(event.target.value)}
+                  role="combobox"
+                  aria-expanded={isLookupOpen && ingredientSuggestions.length > 0}
+                  aria-controls="ingredient-suggestions"
+                  autoComplete="off"
+                  onChange={(event) => {
+                    setIngredientDraft(event.target.value);
+                    setIsLookupOpen(true);
+                  }}
+                  onFocus={() => setIsLookupOpen(true)}
                   onKeyDown={(event) => {
                     if (event.key === "Enter") {
                       event.preventDefault();
-                      addIngredient(ingredientDraft);
+                      addIngredient(ingredientSuggestions[0] ?? ingredientDraft);
+                    }
+
+                    if (event.key === "Escape") {
+                      setIsLookupOpen(false);
                     }
                   }}
                   className="min-h-11 min-w-0 flex-1 rounded-full border border-white/10 bg-black/30 px-4 text-sm text-white outline-none transition placeholder:text-white/34 focus:border-white/34 focus:ring-4 focus:ring-[#ff1fd6]/18"
@@ -237,11 +274,37 @@ export function PantryInputExperience({ ingredientNames }: { ingredientNames: st
                 >
                   Add
                 </button>
-                <datalist id="epicure-ingredients">
-                  {ingredientNames.map((name) => (
-                    <option key={name} value={name} />
-                  ))}
-                </datalist>
+                <AnimatePresence>
+                  {isLookupOpen && ingredientSuggestions.length > 0 ? (
+                    <motion.div
+                      id="ingredient-suggestions"
+                      role="listbox"
+                      initial={reduceMotion ? false : { opacity: 0, y: -4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={reduceMotion ? undefined : { opacity: 0, y: -4 }}
+                      className="absolute left-0 right-20 top-13 z-30 overflow-hidden rounded-3xl border border-white/10 bg-[#101014]/96 p-1 shadow-2xl shadow-black/40 backdrop-blur-xl"
+                    >
+                      {ingredientSuggestions.map((name) => (
+                        <button
+                          key={name}
+                          type="button"
+                          role="option"
+                          aria-selected="false"
+                          onMouseDown={(event) => event.preventDefault()}
+                          onClick={() => addIngredient(name)}
+                          className="block min-h-10 w-full cursor-pointer rounded-[20px] px-3 text-left text-sm font-semibold text-white/72 transition hover:bg-white/8 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                        >
+                          {humanize(name)}
+                        </button>
+                      ))}
+                      {hiddenSuggestionCount > 0 ? (
+                        <p className="px-3 py-2 text-xs font-semibold text-white/38">
+                          {hiddenSuggestionCount} more matches
+                        </p>
+                      ) : null}
+                    </motion.div>
+                  ) : null}
+                </AnimatePresence>
               </div>
 
               <div className="mt-4 flex flex-wrap gap-2">
