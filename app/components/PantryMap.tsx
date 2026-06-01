@@ -15,7 +15,7 @@ import {
   useNodesState,
 } from "@xyflow/react";
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 
 export type PantryMapPoint = {
   id: number;
@@ -28,11 +28,13 @@ export type PantryMapPoint = {
 
 type PantryMapProps = {
   points: PantryMapPoint[];
+  selectedPointId?: string;
+  onSelectPoint?: (id: string) => void;
 };
 
 type IngredientNodeData = {
   name: string;
-  kind: PantryMapPoint["kind"] | "bridge";
+  kind: PantryMapPoint["kind"] | "root";
   score?: number;
 };
 
@@ -40,12 +42,16 @@ const nodeTypes = {
   ingredient: IngredientNode,
 };
 
-export function PantryMap({ points }: PantryMapProps) {
+export function PantryMap({ points, selectedPointId, onSelectPoint }: PantryMapProps) {
   const graph = useMemo(() => buildGraph(points), [points]);
   const [nodes, setNodes, onNodesChange] = useNodesState(graph.nodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(graph.edges);
-  const [selectedNode, setSelectedNode] = useState<Node<IngredientNodeData> | null>(
-    null,
+  const selectedNode = useMemo(
+    () =>
+      selectedPointId
+        ? nodes.find((node) => node.id === selectedPointId) ?? null
+        : null,
+    [nodes, selectedPointId],
   );
 
   useEffect(() => {
@@ -54,7 +60,7 @@ export function PantryMap({ points }: PantryMapProps) {
   }, [graph, setEdges, setNodes]);
 
   return (
-    <div className="relative min-h-[520px] overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.035] backdrop-blur-md">
+    <div className="relative min-h-[560px] overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.035] backdrop-blur-md">
       <div className="absolute left-5 top-5 z-10 rounded-full border border-white/10 bg-black/35 px-4 py-2 text-xs font-semibold uppercase text-white/58 backdrop-blur-xl">
         Epicure atlas
       </div>
@@ -67,7 +73,7 @@ export function PantryMap({ points }: PantryMapProps) {
           nodeTypes={nodeTypes}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
-          onNodeClick={(_, node) => setSelectedNode(node as Node<IngredientNodeData>)}
+          onNodeClick={(_, node) => onSelectPoint?.(node.id)}
           fitView
           fitViewOptions={{ padding: 0.28 }}
           minZoom={0.55}
@@ -79,7 +85,7 @@ export function PantryMap({ points }: PantryMapProps) {
             nodeColor={(node) =>
               node.data.kind === "pantry"
                 ? "#f8fafc"
-                : node.data.kind === "bridge"
+                : node.data.kind === "root"
                   ? "#b000ff"
                   : "#ff1fd6"
             }
@@ -142,13 +148,13 @@ function IngredientNode({ data }: NodeProps<Node<IngredientNodeData>>) {
   const style =
     data.kind === "pantry"
       ? "border-white/30 bg-white text-[#050505]"
-      : data.kind === "bridge"
+      : data.kind === "root"
         ? "border-[#b000ff]/45 bg-[#b000ff]/16 text-[#f0d8ff]"
         : "border-[#ff1fd6]/55 bg-[#ff1fd6]/18 text-[#ffe0fb]";
   const dot =
     data.kind === "pantry"
       ? "bg-[#050505]"
-      : data.kind === "bridge"
+      : data.kind === "root"
         ? "bg-[#b000ff]"
         : "bg-[#ff1fd6]";
 
@@ -176,49 +182,110 @@ function buildGraph(points: PantryMapPoint[]): {
 } {
   const pantry = points.filter((point) => point.kind === "pantry");
   const recommendations = points.filter((point) => point.kind === "recommendation");
-  const bounds = getBounds(points);
-  const nodes: Node<IngredientNodeData>[] = points.map((point) => ({
-    id: pointId(point),
-    type: "ingredient",
-    position: projectToCanvas(point, bounds, points),
-    data: {
-      name: point.name,
-      kind: point.kind,
-      score: point.score,
-    },
-  }));
+  const groups = buildRecommendationGroups(pantry, recommendations);
+  const nodes: Node<IngredientNodeData>[] = [];
   const edges: Edge[] = [];
+  const rowHeight = 86;
+  const branchGap = 28;
+  const rootX = 0;
+  const pantryX = 300;
+  const recommendationX = 630;
+  let cursorY = 0;
 
-  for (const recommendation of recommendations) {
-    const nearest = findNearestPoint(recommendation, pantry);
+  for (const pantryPoint of pantry) {
+    const children = groups.get(pointId(pantryPoint)) ?? [];
+    const branchRows = Math.max(1, children.length);
+    const branchTop = cursorY;
+    const branchBottom = cursorY + (branchRows - 1) * rowHeight;
+    const pantryY = (branchTop + branchBottom) / 2;
 
-    if (!nearest) {
-      continue;
-    }
+    nodes.push({
+      id: pointId(pantryPoint),
+      type: "ingredient",
+      position: { x: pantryX, y: pantryY },
+      data: {
+        name: pantryPoint.name,
+        kind: pantryPoint.kind,
+        score: pantryPoint.score,
+      },
+    });
 
     edges.push({
-      id: `${pointId(nearest)}-${pointId(recommendation)}`,
-      source: pointId(nearest),
-      target: pointId(recommendation),
-      label: "nearest",
+      id: `root-${pointId(pantryPoint)}`,
+      source: "root-pantry",
+      target: pointId(pantryPoint),
       type: "smoothstep",
-      markerEnd: { type: MarkerType.ArrowClosed, color: "#ff1fd6" },
-      style: { stroke: "#ff1fd6", strokeWidth: 2.4 },
-      labelStyle: { fill: "#ffe0fb", fontSize: 11, fontWeight: 700 },
-      labelBgStyle: { fill: "#050505", fillOpacity: 0.74 },
+      style: { stroke: "rgba(255,255,255,0.34)", strokeWidth: 1.8 },
     });
+
+    for (const [index, recommendation] of children.entries()) {
+      const recommendationY = branchTop + index * rowHeight;
+
+      nodes.push({
+        id: pointId(recommendation),
+        type: "ingredient",
+        position: { x: recommendationX, y: recommendationY },
+        data: {
+          name: recommendation.name,
+          kind: recommendation.kind,
+          score: recommendation.score,
+        },
+      });
+
+      edges.push({
+        id: `${pointId(pantryPoint)}-${pointId(recommendation)}`,
+        source: pointId(pantryPoint),
+        target: pointId(recommendation),
+        label: "near",
+        type: "smoothstep",
+        markerEnd: { type: MarkerType.ArrowClosed, color: "#ff1fd6" },
+        style: { stroke: "#ff1fd6", strokeWidth: 2.4 },
+        labelStyle: { fill: "#ffe0fb", fontSize: 11, fontWeight: 700 },
+        labelBgStyle: { fill: "#050505", fillOpacity: 0.74 },
+      });
+    }
+
+    cursorY += branchRows * rowHeight + branchGap;
   }
 
-  if (pantry.length > 1) {
-    const bridge = buildBridgeNode(pantry, bounds);
-    nodes.push(bridge);
+  if (!pantry.length && recommendations.length) {
+    for (const [index, recommendation] of recommendations.entries()) {
+      nodes.push({
+        id: pointId(recommendation),
+        type: "ingredient",
+        position: { x: recommendationX, y: index * rowHeight },
+        data: {
+          name: recommendation.name,
+          kind: recommendation.kind,
+          score: recommendation.score,
+        },
+      });
+    }
+    cursorY = recommendations.length * rowHeight;
+  }
+
+  const rootY = Math.max(0, (cursorY - branchGap - rowHeight) / 2);
+
+  nodes.unshift({
+    id: "root-pantry",
+    type: "ingredient",
+    position: { x: rootX, y: rootY },
+    data: {
+      name: "pantry",
+      kind: "root",
+    },
+    draggable: true,
+  });
+
+  if (!pantry.length) {
     edges.push(
-      ...pantry.map((point) => ({
-        id: `${bridge.id}-${pointId(point)}`,
-        source: bridge.id,
-        target: pointId(point),
+      ...recommendations.map((recommendation) => ({
+        id: `root-${pointId(recommendation)}`,
+        source: "root-pantry",
+        target: pointId(recommendation),
         type: "smoothstep",
-        style: { stroke: "#b000ff", strokeDasharray: "5 5", strokeWidth: 1.7 },
+        markerEnd: { type: MarkerType.ArrowClosed, color: "#ff1fd6" },
+        style: { stroke: "#ff1fd6", strokeWidth: 2.2 },
       })),
     );
   }
@@ -226,64 +293,24 @@ function buildGraph(points: PantryMapPoint[]): {
   return { nodes, edges };
 }
 
-function buildBridgeNode(
+function buildRecommendationGroups(
   pantry: PantryMapPoint[],
-  bounds: ReturnType<typeof getBounds>,
-): Node<IngredientNodeData> {
-  const center = {
-    id: -1,
-    name: "pantry center",
-    kind: "bridge" as const,
-    x: pantry.reduce((sum, point) => sum + point.x, 0) / pantry.length,
-    y: pantry.reduce((sum, point) => sum + point.y, 0) / pantry.length,
-  };
-
-  return {
-    id: "branch-pantry-center",
-    type: "ingredient",
-    position: projectToCanvas(center, bounds, pantry),
-    data: {
-      name: "pantry center",
-      kind: "bridge",
-    },
-    draggable: true,
-  };
-}
-
-function projectToCanvas(
-  point: Pick<PantryMapPoint, "x" | "y"> & { kind: IngredientNodeData["kind"] },
-  bounds: ReturnType<typeof getBounds>,
-  allPoints: Array<Pick<PantryMapPoint, "x" | "y"> & { kind: IngredientNodeData["kind"] }>,
+  recommendations: PantryMapPoint[],
 ) {
-  const width = bounds.maxX - bounds.minX || 1;
-  const height = bounds.maxY - bounds.minY || 1;
-  const baseX = ((point.x - bounds.minX) / width) * 720;
-  const baseY = (1 - (point.y - bounds.minY) / height) * 320;
+  const groups = new Map<string, PantryMapPoint[]>(
+    pantry.map((pantryPoint) => [pointId(pantryPoint), []]),
+  );
 
-  if (point.kind !== "recommendation") {
-    return { x: baseX, y: baseY };
+  for (const recommendation of recommendations) {
+    const nearest = findNearestPoint(recommendation, pantry);
+    const key = nearest ? pointId(nearest) : pointId(pantry[0]);
+
+    if (key) {
+      groups.get(key)?.push(recommendation);
+    }
   }
 
-  const pantryCenter = centerOf(allPoints.filter((candidate) => candidate.kind === "pantry"));
-  const directionX = point.x - pantryCenter.x || 0.2;
-  const directionY = point.y - pantryCenter.y || 0.2;
-  const length = Math.hypot(directionX, directionY) || 1;
-
-  return {
-    x: baseX + (directionX / length) * 64,
-    y: baseY - (directionY / length) * 36,
-  };
-}
-
-function centerOf(points: Array<Pick<PantryMapPoint, "x" | "y">>) {
-  if (!points.length) {
-    return { x: 0, y: 0 };
-  }
-
-  return {
-    x: points.reduce((sum, point) => sum + point.x, 0) / points.length,
-    y: points.reduce((sum, point) => sum + point.y, 0) / points.length,
-  };
+  return groups;
 }
 
 function findNearestPoint(
@@ -300,20 +327,4 @@ function findNearestPoint(
 
 function pointId(point: PantryMapPoint) {
   return `${point.kind}-${point.id}`;
-}
-
-function getBounds(points: Array<Pick<PantryMapPoint, "x" | "y">>) {
-  if (!points.length) {
-    return { minX: 0, maxX: 1, minY: 0, maxY: 1 };
-  }
-
-  const xs = points.map((point) => point.x);
-  const ys = points.map((point) => point.y);
-
-  return {
-    minX: Math.min(...xs),
-    maxX: Math.max(...xs),
-    minY: Math.min(...ys),
-    maxY: Math.max(...ys),
-  };
 }

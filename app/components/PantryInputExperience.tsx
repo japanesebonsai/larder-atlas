@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from "framer-motion";
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { AtlasAtmosphere } from "./AtlasAtmosphere";
 import { PantryMap, type PantryMapPoint } from "./PantryMap";
 
@@ -69,19 +69,55 @@ const samplePantries = [
   "yogurt, rice, lentil, cumin",
 ];
 
-export function PantryInputExperience() {
+export function PantryInputExperience({ ingredientNames }: { ingredientNames: string[] }) {
   const [pantry, setPantry] = useState(samplePantries[0]);
+  const [ingredientDraft, setIngredientDraft] = useState("");
+  const [isLookupOpen, setIsLookupOpen] = useState(false);
   const [goal, setGoal] = useState<PantryGoal>("more_meals");
   const [analysis, setAnalysis] = useState<RecommendResponse | null>(null);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedPointId, setSelectedPointId] = useState<string>("");
+  const [lastResponseMs, setLastResponseMs] = useState<number | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
   const reduceMotion = useReducedMotion();
+  const shouldAnimate = isMounted && !reduceMotion;
   const topRecommendation = analysis?.recommendations[0];
   const matchedNames = useMemo(
     () => analysis?.matched.map((item) => humanize(item.ingredient.name)) ?? [],
     [analysis],
   );
   const mapPoints = useMemo(() => buildMapPoints(analysis), [analysis]);
+  const ingredientSuggestions = useMemo(() => {
+    const query = ingredientDraft.trim().toLowerCase();
+
+    if (query.length < 1) {
+      return [];
+    }
+
+    return ingredientNames
+      .filter((name) => name.toLowerCase().startsWith(query))
+      .slice(0, 6);
+  }, [ingredientDraft, ingredientNames]);
+  const hiddenSuggestionCount = useMemo(() => {
+    const query = ingredientDraft.trim().toLowerCase();
+
+    if (query.length < 1) {
+      return 0;
+    }
+
+    return Math.max(
+      0,
+      ingredientNames.filter((name) => name.toLowerCase().startsWith(query)).length -
+        ingredientSuggestions.length,
+    );
+  }, [ingredientDraft, ingredientNames, ingredientSuggestions.length]);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => setIsMounted(true), 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, []);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -89,6 +125,7 @@ export function PantryInputExperience() {
     setError("");
 
     try {
+      const startedAt = performance.now();
       const response = await fetch("/api/recommend", {
         method: "POST",
         headers: {
@@ -101,12 +138,40 @@ export function PantryInputExperience() {
         throw new Error("The pantry could not be analyzed.");
       }
 
+      setLastResponseMs(Math.round(performance.now() - startedAt));
       setAnalysis(await response.json());
+      setSelectedPointId("");
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Something went wrong.");
     } finally {
       setIsLoading(false);
     }
+  }
+
+  function addIngredient(value: string) {
+    const nextIngredient = value.trim();
+
+    if (!nextIngredient) {
+      return;
+    }
+
+    setPantry((currentPantry) => {
+      const currentItems = currentPantry
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean);
+      const hasIngredient = currentItems.some(
+        (item) => item.toLowerCase() === nextIngredient.toLowerCase(),
+      );
+
+      if (hasIngredient) {
+        return currentPantry;
+      }
+
+      return [...currentItems, nextIngredient].join(", ");
+    });
+    setIngredientDraft("");
+    setIsLookupOpen(false);
   }
 
   return (
@@ -136,6 +201,9 @@ export function PantryInputExperience() {
               </a>
               <a href="#top-buys" className="transition hover:text-white">
                 Buys
+              </a>
+              <a href="#about" className="transition hover:text-white">
+                About
               </a>
             </div>
           </header>
@@ -184,13 +252,82 @@ export function PantryInputExperience() {
                 placeholder="rice, egg, cabbage, soy sauce"
               />
 
+              <div className="relative mt-3 flex gap-2">
+                <label htmlFor="ingredient-lookup" className="sr-only">
+                  Add ingredient
+                </label>
+                <input
+                  id="ingredient-lookup"
+                  value={ingredientDraft}
+                  role="combobox"
+                  aria-expanded={isLookupOpen && ingredientSuggestions.length > 0}
+                  aria-controls="ingredient-suggestions"
+                  autoComplete="off"
+                  onChange={(event) => {
+                    setIngredientDraft(event.target.value);
+                    setIsLookupOpen(true);
+                  }}
+                  onFocus={() => setIsLookupOpen(true)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      event.preventDefault();
+                      addIngredient(ingredientSuggestions[0] ?? ingredientDraft);
+                    }
+
+                    if (event.key === "Escape") {
+                      setIsLookupOpen(false);
+                    }
+                  }}
+                  className="min-h-11 min-w-0 flex-1 rounded-full border border-white/10 bg-black/30 px-4 text-sm text-white outline-none transition placeholder:text-white/34 focus:border-white/34 focus:ring-4 focus:ring-[#ff1fd6]/18"
+                  placeholder="Look up ingredient"
+                />
+                <button
+                  type="button"
+                  onClick={() => addIngredient(ingredientDraft)}
+                  className="min-h-11 cursor-pointer rounded-full border border-white/12 bg-white px-4 text-sm font-semibold text-[#050505] transition hover:bg-[#ffe0fb] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                >
+                  Add
+                </button>
+                <AnimatePresence>
+                  {isLookupOpen && ingredientSuggestions.length > 0 ? (
+                    <motion.div
+                      id="ingredient-suggestions"
+                      role="listbox"
+                      initial={shouldAnimate ? { opacity: 0, y: -4 } : false}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={shouldAnimate ? { opacity: 0, y: -4 } : undefined}
+                      className="absolute left-0 right-20 top-13 z-30 overflow-hidden rounded-3xl border border-white/10 bg-[#101014]/96 p-1 shadow-2xl shadow-black/40 backdrop-blur-xl"
+                    >
+                      {ingredientSuggestions.map((name) => (
+                        <button
+                          key={name}
+                          type="button"
+                          role="option"
+                          aria-selected="false"
+                          onMouseDown={(event) => event.preventDefault()}
+                          onClick={() => addIngredient(name)}
+                          className="block min-h-10 w-full cursor-pointer rounded-[20px] px-3 text-left text-sm font-semibold text-white/72 transition hover:bg-white/8 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                        >
+                          {humanize(name)}
+                        </button>
+                      ))}
+                      {hiddenSuggestionCount > 0 ? (
+                        <p className="px-3 py-2 text-xs font-semibold text-white/38">
+                          {hiddenSuggestionCount} more matches
+                        </p>
+                      ) : null}
+                    </motion.div>
+                  ) : null}
+                </AnimatePresence>
+              </div>
+
               <div className="mt-4 flex flex-wrap gap-2">
                 {samplePantries.map((sample) => (
                   <motion.button
                     key={sample}
                     type="button"
                     onClick={() => setPantry(sample)}
-                    whileTap={reduceMotion ? undefined : { scale: 0.98 }}
+                    whileTap={shouldAnimate ? { scale: 0.98 } : undefined}
                     className="min-h-11 cursor-pointer rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-sm font-semibold text-white/58 transition hover:border-white/24 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                   >
                     {sample}
@@ -211,7 +348,7 @@ export function PantryInputExperience() {
                         layout
                         onClick={() => setGoal(item.id)}
                         aria-pressed={isSelected}
-                        whileTap={reduceMotion ? undefined : { scale: 0.97 }}
+                        whileTap={shouldAnimate ? { scale: 0.97 } : undefined}
                         className={[
                           "relative min-h-11 cursor-pointer rounded-full border px-3 py-1.5 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white",
                           isSelected
@@ -236,7 +373,7 @@ export function PantryInputExperience() {
               <motion.button
                 type="submit"
                 disabled={isLoading}
-                whileTap={reduceMotion || isLoading ? undefined : { scale: 0.98 }}
+                whileTap={shouldAnimate && !isLoading ? { scale: 0.98 } : undefined}
                 className="mt-5 inline-flex h-12 w-full cursor-pointer items-center justify-center rounded-full bg-white px-5 text-sm font-semibold uppercase text-[#050505] transition hover:bg-[#ffe0fb] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isLoading ? "Mapping pantry..." : "Analyze pantry"}
@@ -268,9 +405,9 @@ export function PantryInputExperience() {
                 {topRecommendation ? (
                   <motion.div
                     key={topRecommendation.ingredient.nodeId}
-                    initial={reduceMotion ? false : { opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={reduceMotion ? undefined : { opacity: 0, y: -8 }}
+                      initial={shouldAnimate ? { opacity: 0, y: 10 } : false}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={shouldAnimate ? { opacity: 0, y: -8 } : undefined}
                     transition={{ type: "spring", stiffness: 280, damping: 26 }}
                     className="mt-6"
                   >
@@ -341,10 +478,23 @@ export function PantryInputExperience() {
 
           <section
             id="atlas"
-            className="grid gap-5 border-b border-white/10 py-5 lg:grid-cols-[1fr_220px]"
+            className="grid gap-5 border-b border-white/10 py-5 lg:grid-cols-[1fr_320px]"
           >
-            <PantryMap points={mapPoints} />
+            <PantryMap
+              points={mapPoints}
+              selectedPointId={selectedPointId}
+              onSelectPoint={setSelectedPointId}
+            />
             <div className="grid content-start gap-3 sm:grid-cols-3 lg:grid-cols-1">
+              <IngredientList
+                analysis={analysis}
+                selectedPointId={selectedPointId}
+                onSelectPoint={setSelectedPointId}
+              />
+              <AppMetrics
+                ingredientCount={ingredientNames.length}
+                lastResponseMs={lastResponseMs}
+              />
               <AtlasMetric label="Pantry" value={analysis?.matched.length ?? 0} />
               <AtlasMetric
                 label="Suggestions"
@@ -363,9 +513,9 @@ export function PantryInputExperience() {
                     <motion.article
                       key={recommendation.ingredient.nodeId}
                       layout
-                      initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+                      initial={shouldAnimate ? { opacity: 0, y: 12 } : false}
                       animate={{ opacity: 1, y: 0 }}
-                      exit={reduceMotion ? undefined : { opacity: 0, y: -8 }}
+                      exit={shouldAnimate ? { opacity: 0, y: -8 } : undefined}
                       transition={{
                         type: "spring",
                         stiffness: 320,
@@ -399,6 +549,69 @@ export function PantryInputExperience() {
                 Recommendations will appear here after analysis.
               </p>
             )}
+          </section>
+
+          <section id="about" className="border-t border-white/10 py-8">
+            <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
+              <article className="rounded-[28px] border border-white/10 bg-white/[0.045] p-5 backdrop-blur-xl">
+                <SectionLabel>About</SectionLabel>
+                <h2 className="mt-5 max-w-2xl text-4xl font-semibold leading-none text-white sm:text-5xl">
+                  Built on Epicure. Tuned for pantry decisions.
+                </h2>
+                <p className="mt-5 max-w-2xl text-base leading-7 text-white/58">
+                  Larder Atlas turns static Epicure ingredient data into a small
+                  pantry decision tool. Epicure provides the ingredient embedding
+                  space and metadata. Larder Atlas adds a practical recommendation
+                  layer that favors useful next buys over direct substitutes.
+                </p>
+                <p className="mt-4 max-w-2xl text-sm leading-6 text-white/42">
+                  The complementary scoring layer is a Larder Atlas product
+                  heuristic. It is not a claim from the Epicure paper.
+                </p>
+              </article>
+
+              <div className="grid gap-5">
+                <InfoPanel title="Architecture">
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <ArchitectureItem
+                      title="Next.js app"
+                      body="Pantry input, visualizer, metrics, and references."
+                    />
+                    <ArchitectureItem
+                      title="Static Epicure data"
+                      body="Bundled ingredients, tags, embeddings, and atlas coordinates."
+                    />
+                    <ArchitectureItem
+                      title="Serverless API"
+                      body="Matches pantry text and ranks deterministic recommendations."
+                    />
+                    <ArchitectureItem
+                      title="Client atlas"
+                      body="Recursive graph, ingredient list, and selectable nodes."
+                    />
+                  </div>
+                  <p className="mt-4 text-sm leading-6 text-white/42">
+                    Current recommendations use local scoring and template
+                    explanations. There is no live model call during recommendation.
+                  </p>
+                </InfoPanel>
+
+                <InfoPanel title="References">
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <ReferenceLink
+                      href="https://github.com/KAIKAKU-AI/epicure-mcp"
+                      label="Epicure MCP"
+                      body="Public read-only MCP server for Epicure."
+                    />
+                    <ReferenceLink
+                      href="https://arxiv.org/abs/2605.22391"
+                      label="Epicure paper"
+                      body="Navigating the emergent geometry of food ingredient embeddings."
+                    />
+                  </div>
+                </InfoPanel>
+              </div>
+            </div>
           </section>
         </div>
       </main>
@@ -440,6 +653,37 @@ function InfoPanel({
   );
 }
 
+function ArchitectureItem({ title, body }: { title: string; body: string }) {
+  return (
+    <div className="rounded-[24px] border border-white/8 bg-black/20 p-4">
+      <h3 className="text-sm font-semibold text-white">{title}</h3>
+      <p className="mt-2 text-sm leading-6 text-white/46">{body}</p>
+    </div>
+  );
+}
+
+function ReferenceLink({
+  href,
+  label,
+  body,
+}: {
+  href: string;
+  label: string;
+  body: string;
+}) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      className="rounded-[24px] border border-white/8 bg-black/20 p-4 transition hover:border-[#ff1fd6]/45 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+    >
+      <span className="text-sm font-semibold text-white">{label}</span>
+      <span className="mt-2 block text-sm leading-6 text-white/46">{body}</span>
+    </a>
+  );
+}
+
 function AtlasMetric({ label, value }: { label: string; value: number }) {
   return (
     <motion.div layout className="rounded-[24px] border border-white/10 bg-white/[0.045] p-4 backdrop-blur-xl">
@@ -456,6 +700,164 @@ function AtlasMetric({ label, value }: { label: string; value: number }) {
       </motion.p>
     </motion.div>
   );
+}
+
+function IngredientList({
+  analysis,
+  selectedPointId,
+  onSelectPoint,
+}: {
+  analysis: RecommendResponse | null;
+  selectedPointId: string;
+  onSelectPoint: (id: string) => void;
+}) {
+  const matched = analysis?.matched ?? [];
+  const recommendations = analysis?.recommendations ?? [];
+  const missing = analysis?.missing ?? [];
+
+  return (
+    <article className="rounded-[24px] border border-white/10 bg-white/[0.045] p-4 backdrop-blur-xl sm:col-span-3 lg:col-span-1">
+      <SectionLabel>Ingredients</SectionLabel>
+      <div className="mt-4 space-y-5">
+        <IngredientListGroup title="Matched">
+          {matched.length ? (
+            matched.map((item) => {
+              const id = pointKey("pantry", item.ingredient.nodeId);
+
+              return (
+                <IngredientListButton
+                  key={id}
+                  isSelected={selectedPointId === id}
+                  label={humanize(item.ingredient.name)}
+                  detail={humanize(item.ingredient.primaryCategory)}
+                  onClick={() => onSelectPoint(id)}
+                />
+              );
+            })
+          ) : (
+            <EmptyListText>Waiting for analysis.</EmptyListText>
+          )}
+        </IngredientListGroup>
+
+        <IngredientListGroup title="Recommended">
+          {recommendations.length ? (
+            recommendations.slice(0, 6).map((item) => {
+              const id = pointKey("recommendation", item.ingredient.nodeId);
+
+              return (
+                <IngredientListButton
+                  key={id}
+                  isSelected={selectedPointId === id}
+                  label={humanize(item.ingredient.name)}
+                  detail={item.score.toFixed(3)}
+                  onClick={() => onSelectPoint(id)}
+                />
+              );
+            })
+          ) : (
+            <EmptyListText>No buys yet.</EmptyListText>
+          )}
+        </IngredientListGroup>
+
+        {missing.length ? (
+          <IngredientListGroup title="Missing">
+            <div className="flex flex-wrap gap-2">
+              {missing.map((item) => (
+                <span
+                  key={item}
+                  className="rounded-full border border-white/10 px-2.5 py-1 text-xs font-semibold text-white/46"
+                >
+                  {item}
+                </span>
+              ))}
+            </div>
+          </IngredientListGroup>
+        ) : null}
+      </div>
+    </article>
+  );
+}
+
+function AppMetrics({
+  ingredientCount,
+  lastResponseMs,
+}: {
+  ingredientCount: number;
+  lastResponseMs: number | null;
+}) {
+  return (
+    <article className="rounded-[24px] border border-white/10 bg-white/[0.045] p-4 backdrop-blur-xl sm:col-span-3 lg:col-span-1">
+      <SectionLabel>App metrics</SectionLabel>
+      <div className="mt-4 grid gap-3">
+        <MetricRow label="Ingredients" value={ingredientCount.toLocaleString()} />
+        <MetricRow label="Model calls" value="0" />
+        <MetricRow label="Data mode" value="Static" />
+        <MetricRow
+          label="Last response"
+          value={lastResponseMs === null ? "Not measured" : `${lastResponseMs} ms`}
+        />
+      </div>
+      <p className="mt-4 text-xs leading-5 text-white/38">
+        These measure Larder Atlas using bundled Epicure data.
+      </p>
+    </article>
+  );
+}
+
+function MetricRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between gap-3 border-b border-white/8 pb-2 last:border-b-0 last:pb-0">
+      <span className="text-xs font-semibold uppercase text-white/38">{label}</span>
+      <span className="text-sm font-semibold text-white">{value}</span>
+    </div>
+  );
+}
+
+function IngredientListGroup({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section>
+      <p className="text-xs font-semibold uppercase text-white/38">{title}</p>
+      <div className="mt-2 space-y-2">{children}</div>
+    </section>
+  );
+}
+
+function IngredientListButton({
+  label,
+  detail,
+  isSelected,
+  onClick,
+}: {
+  label: string;
+  detail: string;
+  isSelected: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={[
+        "flex min-h-11 w-full cursor-pointer items-center justify-between gap-3 rounded-2xl border px-3 py-2 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white",
+        isSelected
+          ? "border-[#ff1fd6]/55 bg-[#ff1fd6]/16 text-white"
+          : "border-white/8 bg-black/20 text-white/68 hover:border-white/18 hover:text-white",
+      ].join(" ")}
+    >
+      <span className="text-sm font-semibold">{label}</span>
+      <span className="shrink-0 text-xs font-semibold text-white/42">{detail}</span>
+    </button>
+  );
+}
+
+function EmptyListText({ children }: { children: React.ReactNode }) {
+  return <p className="text-sm text-white/42">{children}</p>;
 }
 
 function AffinityList({
@@ -493,6 +895,10 @@ function AffinityList({
 
 function humanize(value: string): string {
   return value.replaceAll("_", " ");
+}
+
+function pointKey(kind: "pantry" | "recommendation", id: number) {
+  return `${kind}-${id}`;
 }
 
 function buildMapPoints(analysis: RecommendResponse | null): PantryMapPoint[] {
