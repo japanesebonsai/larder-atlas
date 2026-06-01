@@ -24,7 +24,7 @@ const starBaseSize = 0.55;
 const starFuzziness = 0.2;
 const starCount = 72;
 
-export function AtlasAtmosphere() {
+export function AtlasAtmosphere({ theme }: { theme: "dark" | "light" }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const orbRef = useRef<HTMLDivElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -180,11 +180,14 @@ export function AtlasAtmosphere() {
   return (
     <div
       ref={containerRef}
-      className="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-[#050505]"
+      className="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-[var(--app-bg)]"
     >
       <div
         ref={orbRef}
-        className="absolute left-1/2 rounded-full opacity-[0.28] blur-[120px] will-change-transform"
+        className={[
+          "absolute left-1/2 rounded-full blur-[120px] will-change-transform",
+          theme === "dark" ? "opacity-[0.28]" : "opacity-[0.18]",
+        ].join(" ")}
         style={{
           top: orbPositionY,
           width: orbSize,
@@ -198,7 +201,14 @@ export function AtlasAtmosphere() {
         className="absolute left-0 top-0 h-full w-full will-change-transform"
       />
       <div className="absolute right-[-18%] top-[-24%] h-[62vh] w-[76vw] bg-[radial-gradient(circle_at_68%_28%,rgba(255,31,214,0.72),transparent_31%),radial-gradient(circle_at_36%_42%,rgba(176,0,255,0.42),transparent_36%),linear-gradient(120deg,transparent_0%,rgba(255,31,214,0.22)_48%,rgba(255,31,214,0.42)_100%)] blur-[22px]" />
-      <div className="absolute inset-0 bg-[linear-gradient(112deg,#050505_0%,#050505_42%,rgba(5,5,5,0.9)_62%,rgba(5,5,5,0.2)_100%)]" />
+      <div
+        className={[
+          "absolute inset-0",
+          theme === "dark"
+            ? "bg-[linear-gradient(112deg,#050505_0%,#050505_42%,rgba(5,5,5,0.9)_62%,rgba(5,5,5,0.2)_100%)]"
+            : "bg-[linear-gradient(112deg,#f7f3ef_0%,#f7f3ef_48%,rgba(247,243,239,0.88)_70%,rgba(247,243,239,0.18)_100%)]",
+        ].join(" ")}
+      />
     </div>
   );
 }

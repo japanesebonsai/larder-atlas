@@ -1,8 +1,61 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #050505;
+  --foreground: #f8fafc;
+  --app-bg: #050505;
+  --app-text: #ffffff;
+  --app-text-muted: rgba(255, 255, 255, 0.58);
+  --app-text-faint: rgba(255, 255, 255, 0.38);
+  --app-border: rgba(255, 255, 255, 0.1);
+  --app-border-strong: rgba(255, 255, 255, 0.24);
+  --app-surface: rgba(255, 255, 255, 0.045);
+  --app-surface-strong: rgba(255, 255, 255, 0.06);
+  --app-field: rgba(0, 0, 0, 0.3);
+  --app-chip: rgba(255, 255, 255, 0.04);
+  --app-popover: rgba(16, 16, 20, 0.96);
+  --app-inverse: #ffffff;
+  --app-inverse-text: #050505;
+  --app-accent: #ff1fd6;
+  --app-accent-soft: rgba(255, 31, 214, 0.16);
+  --app-accent-text: #ffe0fb;
+  --app-violet: #b000ff;
+  --app-violet-soft: rgba(176, 0, 255, 0.16);
+  --app-graph-grid: rgba(255, 255, 255, 0.16);
+  --app-graph-mask: rgba(5, 5, 5, 0.62);
+  --app-graph-label-bg: #050505;
+  --app-danger-soft: rgba(239, 68, 68, 0.12);
+  --app-danger-border: rgba(239, 68, 68, 0.3);
+  --app-danger-text: #fecdd3;
+}
+
+:root[data-theme="light"] {
+  --background: #f7f3ef;
+  --foreground: #171014;
+  --app-bg: #f7f3ef;
+  --app-text: #171014;
+  --app-text-muted: rgba(23, 16, 20, 0.66);
+  --app-text-faint: rgba(23, 16, 20, 0.45);
+  --app-border: rgba(23, 16, 20, 0.12);
+  --app-border-strong: rgba(23, 16, 20, 0.24);
+  --app-surface: rgba(255, 255, 255, 0.68);
+  --app-surface-strong: rgba(255, 255, 255, 0.84);
+  --app-field: rgba(255, 255, 255, 0.72);
+  --app-chip: rgba(255, 255, 255, 0.62);
+  --app-popover: rgba(255, 255, 255, 0.96);
+  --app-inverse: #171014;
+  --app-inverse-text: #ffffff;
+  --app-accent: #c500a4;
+  --app-accent-soft: rgba(197, 0, 164, 0.12);
+  --app-accent-text: #641055;
+  --app-violet: #7b00cf;
+  --app-violet-soft: rgba(123, 0, 207, 0.1);
+  --app-graph-grid: rgba(23, 16, 20, 0.14);
+  --app-graph-mask: rgba(247, 243, 239, 0.68);
+  --app-graph-label-bg: #f7f3ef;
+  --app-danger-soft: rgba(220, 38, 38, 0.08);
+  --app-danger-border: rgba(220, 38, 38, 0.24);
+  --app-danger-text: #8f1d2c;
 }
 
 @theme inline {
@@ -11,13 +64,6 @@
   --font-sans: var(--font-karla);
   --font-display: var(--font-display);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
