@@ -1,0 +1,90 @@
+"use client";
+
+import {
+  buildTemplateRecipes,
+  type RecipeIngredient,
+} from "@/lib/pantry/recipe-template";
+
+type RecipeGalleryProps = {
+  pantry: RecipeIngredient[];
+  recommendations: Array<{
+    ingredient: RecipeIngredient;
+    score: number;
+  }>;
+};
+
+export function RecipeGallery({ pantry, recommendations }: RecipeGalleryProps) {
+  const recipes = buildTemplateRecipes({ pantry, recommendations });
+
+  return (
+    <section id="recipes" className="border-b border-[var(--app-border)] py-5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase text-[var(--app-accent)]">
+            Recipe gallery
+          </p>
+          <h2 className="mt-2 text-4xl font-semibold leading-none text-[var(--app-text)]">
+            Template recipes, no AI call.
+          </h2>
+        </div>
+        <p className="max-w-sm text-sm leading-6 text-[var(--app-text-faint)]">
+          Drafted from the current pantry and top recommendations. These are
+          deterministic recipe templates for V1.
+        </p>
+      </div>
+
+      {recipes.length ? (
+        <div className="mt-5 grid gap-4 lg:grid-cols-2">
+          {recipes.map((recipe) => (
+            <article
+              key={recipe.id}
+              className="rounded-[28px] border border-[var(--app-border)] bg-[var(--app-surface)] p-5 backdrop-blur-xl"
+            >
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase text-[var(--app-text-faint)]">
+                    {recipe.type} / {recipe.servings} servings / {recipe.time}
+                  </p>
+                  <h3 className="mt-2 text-3xl font-semibold leading-none text-[var(--app-text)]">
+                    {recipe.title}
+                  </h3>
+                </div>
+                <span className="w-fit rounded-full border border-[var(--app-accent)] bg-[var(--app-accent-soft)] px-3 py-1 text-xs font-semibold text-[var(--app-accent-text)]">
+                  {recipe.cuisine}
+                </span>
+              </div>
+
+              <div className="mt-5 grid gap-5 md:grid-cols-[0.85fr_1.15fr]">
+                <div>
+                  <p className="text-xs font-semibold uppercase text-[var(--app-text-faint)]">
+                    Ingredients
+                  </p>
+                  <ul className="mt-3 space-y-2 text-sm leading-5 text-[var(--app-text-muted)]">
+                    {recipe.ingredients.map((ingredient) => (
+                      <li key={ingredient}>{ingredient}</li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div>
+                  <p className="text-xs font-semibold uppercase text-[var(--app-text-faint)]">
+                    Instructions
+                  </p>
+                  <ol className="mt-3 space-y-2 text-sm leading-5 text-[var(--app-text-muted)]">
+                    {recipe.instructions.map((step) => (
+                      <li key={step}>{step}</li>
+                    ))}
+                  </ol>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <p className="mt-5 rounded-[24px] border border-[var(--app-border)] bg-[var(--app-surface)] p-5 text-sm text-[var(--app-text-faint)]">
+          Run a pantry analysis to generate template recipes.
+        </p>
+      )}
+    </section>
+  );
+}
