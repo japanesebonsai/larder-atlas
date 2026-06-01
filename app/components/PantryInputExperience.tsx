@@ -202,6 +202,9 @@ export function PantryInputExperience({ ingredientNames }: { ingredientNames: st
               <a href="#top-buys" className="transition hover:text-white">
                 Buys
               </a>
+              <a href="#about" className="transition hover:text-white">
+                About
+              </a>
             </div>
           </header>
 
@@ -547,6 +550,69 @@ export function PantryInputExperience({ ingredientNames }: { ingredientNames: st
               </p>
             )}
           </section>
+
+          <section id="about" className="border-t border-white/10 py-8">
+            <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
+              <article className="rounded-[28px] border border-white/10 bg-white/[0.045] p-5 backdrop-blur-xl">
+                <SectionLabel>About</SectionLabel>
+                <h2 className="mt-5 max-w-2xl text-4xl font-semibold leading-none text-white sm:text-5xl">
+                  Built on Epicure. Tuned for pantry decisions.
+                </h2>
+                <p className="mt-5 max-w-2xl text-base leading-7 text-white/58">
+                  Larder Atlas turns static Epicure ingredient data into a small
+                  pantry decision tool. Epicure provides the ingredient embedding
+                  space and metadata. Larder Atlas adds a practical recommendation
+                  layer that favors useful next buys over direct substitutes.
+                </p>
+                <p className="mt-4 max-w-2xl text-sm leading-6 text-white/42">
+                  The complementary scoring layer is a Larder Atlas product
+                  heuristic. It is not a claim from the Epicure paper.
+                </p>
+              </article>
+
+              <div className="grid gap-5">
+                <InfoPanel title="Architecture">
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <ArchitectureItem
+                      title="Next.js app"
+                      body="Pantry input, visualizer, metrics, and references."
+                    />
+                    <ArchitectureItem
+                      title="Static Epicure data"
+                      body="Bundled ingredients, tags, embeddings, and atlas coordinates."
+                    />
+                    <ArchitectureItem
+                      title="Serverless API"
+                      body="Matches pantry text and ranks deterministic recommendations."
+                    />
+                    <ArchitectureItem
+                      title="Client atlas"
+                      body="Recursive graph, ingredient list, and selectable nodes."
+                    />
+                  </div>
+                  <p className="mt-4 text-sm leading-6 text-white/42">
+                    Current recommendations use local scoring and template
+                    explanations. There is no live model call during recommendation.
+                  </p>
+                </InfoPanel>
+
+                <InfoPanel title="References">
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <ReferenceLink
+                      href="https://github.com/KAIKAKU-AI/epicure-mcp"
+                      label="Epicure MCP"
+                      body="Public read-only MCP server for Epicure."
+                    />
+                    <ReferenceLink
+                      href="https://arxiv.org/abs/2605.22391"
+                      label="Epicure paper"
+                      body="Navigating the emergent geometry of food ingredient embeddings."
+                    />
+                  </div>
+                </InfoPanel>
+              </div>
+            </div>
+          </section>
         </div>
       </main>
     </LayoutGroup>
@@ -584,6 +650,37 @@ function InfoPanel({
       <SectionLabel>{title}</SectionLabel>
       <div className="mt-4">{children}</div>
     </article>
+  );
+}
+
+function ArchitectureItem({ title, body }: { title: string; body: string }) {
+  return (
+    <div className="rounded-[24px] border border-white/8 bg-black/20 p-4">
+      <h3 className="text-sm font-semibold text-white">{title}</h3>
+      <p className="mt-2 text-sm leading-6 text-white/46">{body}</p>
+    </div>
+  );
+}
+
+function ReferenceLink({
+  href,
+  label,
+  body,
+}: {
+  href: string;
+  label: string;
+  body: string;
+}) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      className="rounded-[24px] border border-white/8 bg-black/20 p-4 transition hover:border-[#ff1fd6]/45 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+    >
+      <span className="text-sm font-semibold text-white">{label}</span>
+      <span className="mt-2 block text-sm leading-6 text-white/46">{body}</span>
+    </a>
   );
 }
 
