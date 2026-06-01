@@ -15,6 +15,23 @@ Epicure provides the ingredient embedding space and metadata. Larder Atlas adds 
 - Serverless `/api/recommend` route
 - No paid AI dependency
 
+## What Comes From Epicure
+
+Epicure contributes the bundled ingredient map:
+
+- Ingredient names and categories
+- Vegetarian, vegan, cuisine, food group, and NOVA metadata
+- Embedding vectors
+- Atlas coordinates
+
+Larder Atlas contributes the product layer:
+
+- Pantry text matching
+- Practical next-buy scoring
+- Template explanations and recipes
+- Recursive visualizer
+- Browser-observed app metrics
+
 ## Optional Recipe Images
 
 Template recipes do not require AI. Recipe images are optional and use Cloudflare
@@ -46,6 +63,19 @@ Client visualizer
 ```
 
 The current app makes no live model call during recommendation. Recommendation responses are generated from bundled Epicure data and local deterministic scoring.
+
+## App Metrics
+
+The in-app metrics measure Larder Atlas itself, not Epicure's research benchmarks:
+
+- `Ingredients`: bundled Epicure ingredient count loaded by the app.
+- `Model calls`: live model calls used for recommendation. This is currently `0`.
+- `Data mode`: static bundled data.
+- `Last response`: browser-observed `/api/recommend` round trip for the latest analysis.
+- `Session avg`: average of the latest local analysis timings in the current browser session.
+- `Fastest`: fastest local analysis timing in the current browser session.
+
+Use these as product/runtime metrics. Do not describe them as LLM-vs-Epicure benchmark results unless a separate benchmark harness is added.
 
 ## Recommendation Approach
 
@@ -114,6 +144,11 @@ This app is Vercel-friendly as-is:
 - The Epicure data is bundled in `data/epicure`.
 - The recommendation engine runs in a Next.js serverless route.
 - The browser response strips full embedding vectors.
-- No environment variables are required for the current no-AI version.
+- No environment variables are required for recommendations or template recipes.
+- Optional Cloudflare Workers AI environment variables only enable recipe images.
 
 Deploy with Vercel's default Next.js settings.
+
+Cloudflare Workers Builds are not required to host this app on Vercel. If a
+Cloudflare-generated branch exists, keep Vercel focused on the normal app
+branches and use Cloudflare only as the optional image-generation API provider.

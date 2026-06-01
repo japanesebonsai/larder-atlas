@@ -82,6 +82,7 @@ export function PantryInputExperience({ ingredientNames }: { ingredientNames: st
   const [isLoading, setIsLoading] = useState(false);
   const [selectedPointId, setSelectedPointId] = useState<string>("");
   const [lastResponseMs, setLastResponseMs] = useState<number | null>(null);
+  const [responseSamples, setResponseSamples] = useState<number[]>([]);
   const [isMounted, setIsMounted] = useState(false);
   const [theme, setTheme] = useState<ThemeMode>("dark");
   const reduceMotion = useReducedMotion();
@@ -159,7 +160,9 @@ export function PantryInputExperience({ ingredientNames }: { ingredientNames: st
         throw new Error("The pantry could not be analyzed.");
       }
 
-      setLastResponseMs(Math.round(performance.now() - startedAt));
+      const responseMs = Math.round(performance.now() - startedAt);
+      setLastResponseMs(responseMs);
+      setResponseSamples((currentSamples) => [...currentSamples.slice(-9), responseMs]);
       setAnalysis(await response.json());
       setSelectedPointId("");
     } catch (caught) {
@@ -536,6 +539,7 @@ export function PantryInputExperience({ ingredientNames }: { ingredientNames: st
               <AppMetrics
                 ingredientCount={ingredientNames.length}
                 lastResponseMs={lastResponseMs}
+                responseSamples={responseSamples}
               />
               <AtlasMetric label="Pantry" value={analysis?.matched.length ?? 0} />
               <AtlasMetric
@@ -614,6 +618,11 @@ export function PantryInputExperience({ ingredientNames }: { ingredientNames: st
                 <p className="mt-4 max-w-2xl text-sm leading-6 text-[var(--app-text-faint)]">
                   The complementary scoring layer is a Larder Atlas product
                   heuristic. It is not a claim from the Epicure paper.
+                </p>
+                <p className="mt-4 max-w-2xl text-sm leading-6 text-[var(--app-text-faint)]">
+                  The app metrics in the atlas are browser-observed timings for
+                  this session. They describe Larder Atlas over bundled data, not
+                  benchmark claims from the Epicure paper.
                 </p>
               </article>
 
@@ -828,10 +837,22 @@ function IngredientList({
 function AppMetrics({
   ingredientCount,
   lastResponseMs,
+  responseSamples,
 }: {
   ingredientCount: number;
   lastResponseMs: number | null;
+  responseSamples: number[];
 }) {
+  const averageResponseMs =
+    responseSamples.length === 0
+      ? null
+      : Math.round(
+          responseSamples.reduce((total, sample) => total + sample, 0) /
+            responseSamples.length,
+        );
+  const fastestResponseMs =
+    responseSamples.length === 0 ? null : Math.min(...responseSamples);
+
   return (
     <article className="rounded-[24px] border border-[var(--app-border)] bg-[var(--app-surface)] p-4 backdrop-blur-xl sm:col-span-3 lg:col-span-1">
       <SectionLabel>App metrics</SectionLabel>
@@ -843,9 +864,17 @@ function AppMetrics({
           label="Last response"
           value={lastResponseMs === null ? "Not measured" : `${lastResponseMs} ms`}
         />
+        <MetricRow
+          label="Session avg"
+          value={averageResponseMs === null ? "Not measured" : `${averageResponseMs} ms`}
+        />
+        <MetricRow
+          label="Fastest"
+          value={fastestResponseMs === null ? "Not measured" : `${fastestResponseMs} ms`}
+        />
       </div>
       <p className="mt-4 text-xs leading-5 text-[var(--app-text-faint)]">
-        These measure Larder Atlas using bundled Epicure data.
+        These are browser-observed Larder Atlas timings from this session.
       </p>
     </article>
   );
