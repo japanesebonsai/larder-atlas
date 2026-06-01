@@ -4,6 +4,7 @@ import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from "framer-m
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { AtlasAtmosphere } from "./AtlasAtmosphere";
 import { PantryMap, type PantryMapPoint } from "./PantryMap";
+import { RecipeGallery } from "./RecipeGallery";
 
 type ThemeMode = "dark" | "light";
 
@@ -232,6 +233,9 @@ export function PantryInputExperience({ ingredientNames }: { ingredientNames: st
               </a>
               <a href="#top-buys" className="transition hover:text-[var(--app-text)]">
                 Buys
+              </a>
+              <a href="#recipes" className="transition hover:text-[var(--app-text)]">
+                Recipes
               </a>
               <a href="#about" className="transition hover:text-[var(--app-text)]">
                 About
@@ -588,6 +592,11 @@ export function PantryInputExperience({ ingredientNames }: { ingredientNames: st
               </p>
             )}
           </section>
+
+          <RecipeGallery
+            pantry={analysis?.matched.map((item) => item.ingredient) ?? []}
+            recommendations={analysis?.recommendations ?? []}
+          />
 
           <section id="about" className="border-t border-[var(--app-border)] py-8">
             <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">

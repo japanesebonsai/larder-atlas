@@ -15,6 +15,20 @@ Epicure provides the ingredient embedding space and metadata. Larder Atlas adds 
 - Serverless `/api/recommend` route
 - No paid AI dependency
 
+## Optional Recipe Images
+
+Template recipes do not require AI. Recipe images are optional and use Cloudflare
+Workers AI when configured:
+
+```bash
+CLOUDFLARE_ACCOUNT_ID=
+CLOUDFLARE_API_TOKEN=
+CLOUDFLARE_IMAGE_MODEL=@cf/black-forest-labs/flux-1-schnell
+```
+
+If these values are not set, the app still works and the image generator returns
+a disabled-state message.
+
 ## Architecture
 
 ```text
