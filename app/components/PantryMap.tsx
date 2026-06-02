@@ -97,14 +97,14 @@ export function PantryMap({ points, selectedPointId, onSelectPoint }: PantryMapP
         </ReactFlow>
       ) : (
         <div className="absolute inset-0 z-10 flex items-center justify-center px-8 text-center text-sm leading-6 text-[var(--app-text-muted)]">
-          Analyze a pantry to place ingredients and buys on the map.
+          Analyze a pantry to place ingredients and pairs on the map.
         </div>
       )}
 
       <div className="absolute bottom-5 left-5 z-10 flex gap-2 text-xs text-[var(--app-text-muted)]">
         <LegendDot className="bg-[var(--app-inverse)]" label="pantry" />
         <LegendDot className="bg-[var(--app-violet)]" label="branch" />
-        <LegendDot className="bg-[var(--app-accent)]" label="buy" />
+        <LegendDot className="bg-[var(--app-accent)]" label="pair" />
       </div>
 
       <AnimatePresence>

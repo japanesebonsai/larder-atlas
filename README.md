@@ -2,7 +2,7 @@
 
 Map what is on hand. Find what unlocks dinner.
 
-Larder Atlas is a small Next.js app powered by static Epicure ingredient data. It turns a pantry list into matched ingredients, useful next buys, cuisine/category affinities, template explanations, and a recursive ingredient atlas.
+Larder Atlas is a small Next.js app powered by static Epicure ingredient data. It turns a pantry list into matched ingredients, useful next pairs, cuisine/category affinities, template explanations, and a recursive ingredient atlas.
 
 Epicure provides the ingredient embedding space and metadata. Larder Atlas adds a practical recommendation layer on top of that data, tuned for pantry usefulness rather than pure similarity.
 
@@ -27,7 +27,7 @@ Epicure contributes the bundled ingredient map:
 Larder Atlas contributes the product layer:
 
 - Pantry text matching
-- Practical next-buy scoring
+- Practical next-pair scoring
 - Template explanations and recipes
 - Stored recipe gallery
 - Recursive visualizer
@@ -106,7 +106,7 @@ Use these as product/runtime metrics. Do not describe them as LLM-vs-Epicure ben
 
 ## Recommendation Approach
 
-Larder Atlas uses Epicure ingredient embeddings as the base relationship map. It then applies a lightweight local scoring layer to rank practical next buys.
+Larder Atlas uses Epicure ingredient embeddings as the base relationship map. It then applies a lightweight local scoring layer to rank practical next pairs.
 
 This scoring layer intentionally favors complementary ingredients, such as herbs, spices, vegetables, grains, and pantry staples, over same-category substitutes like one meat replacing another. This is a Larder Atlas product heuristic designed for pantry usefulness. It is not a claim made by the Epicure paper.
 

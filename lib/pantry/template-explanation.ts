@@ -17,7 +17,7 @@ export function buildTemplateExplanation(
   const meals = mealIdeas(top, cuisine);
 
   return [
-    `Best buy: ${humanize(top.ingredient.name)}.`,
+    `Best pair: ${humanize(top.ingredient.name)}.`,
     `It fits with ${formatList(pantry)} and ${top.reasons[0]?.toLowerCase() ?? "adds a useful new direction"}.`,
     goal !== "more_meals" ? `Goal: ${humanize(goal)}.` : "",
     cuisine

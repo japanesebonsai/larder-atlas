@@ -1,0 +1,16 @@
+<svg width="1200" height="800" viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Epicure paper preview</title>
+  <desc id="desc">Preview card for the Epicure arXiv paper.</desc>
+  <rect width="1200" height="800" fill="#f5f2ee"/>
+  <rect x="96" y="78" width="1008" height="644" rx="18" fill="#fffdf9" stroke="#d8d0c4" stroke-width="2"/>
+  <text x="150" y="150" font-family="Georgia, serif" font-size="34" fill="#171717">arXiv:2605.22391</text>
+  <text x="150" y="245" font-family="Georgia, serif" font-size="66" font-weight="700" fill="#101014">Epicure</text>
+  <text x="150" y="320" font-family="Georgia, serif" font-size="34" fill="#333338">Navigating the Emergent Geometry</text>
+  <text x="150" y="370" font-family="Georgia, serif" font-size="34" fill="#333338">of Food Ingredient Embeddings</text>
+  <line x1="150" y1="430" x2="960" y2="430" stroke="#d8d0c4" stroke-width="2"/>
+  <text x="150" y="500" font-family="Arial, sans-serif" font-size="24" fill="#57524b">Ingredient embeddings, atlas coordinates,</text>
+  <text x="150" y="540" font-family="Arial, sans-serif" font-size="24" fill="#57524b">and food relationship geometry.</text>
+  <circle cx="910" cy="220" r="74" fill="#ff38cd" opacity="0.8"/>
+  <circle cx="970" cy="280" r="96" fill="#9123ff" opacity="0.65"/>
+  <circle cx="860" cy="320" r="58" fill="#101014" opacity="0.9"/>
+</svg>

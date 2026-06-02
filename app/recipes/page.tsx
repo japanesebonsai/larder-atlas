@@ -10,12 +10,20 @@ export default function RecipesPage() {
           <Link href="/" className="text-sm font-semibold uppercase text-[var(--app-text)]">
             Larder Atlas
           </Link>
-          <Link
-            href="/#recipes"
-            className="rounded-full border border-[var(--app-border)] bg-[var(--app-surface)] px-4 py-2 text-sm font-semibold text-[var(--app-text)] transition hover:border-[var(--app-accent)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-text)]"
-          >
-            Generate recipes
-          </Link>
+          <nav className="flex items-center gap-3">
+            <Link
+              href="/"
+              className="hidden text-sm font-semibold uppercase text-[var(--app-text-muted)] transition hover:text-[var(--app-text)] sm:inline"
+            >
+              Main
+            </Link>
+            <Link
+              href="/#recipes"
+              className="rounded-full border border-[var(--app-border)] bg-[var(--app-surface)] px-4 py-2 text-sm font-semibold text-[var(--app-text)] transition hover:border-[var(--app-accent)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-text)]"
+            >
+              Generate recipes
+            </Link>
+          </nav>
         </header>
 
         <section className="py-10 sm:py-14">
