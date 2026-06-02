@@ -87,7 +87,7 @@ export async function POST(request: Request) {
             {
               role: "system",
               content:
-                "You polish concise home-cooking recipes. Return valid JSON only. Do not add ingredients, remove ingredients, or change the recipe logic.",
+                "You polish concise home-cooking recipes. Return one minified JSON object only. Do not explain.",
             },
             {
               role: "user",
@@ -97,8 +97,10 @@ export async function POST(request: Request) {
           response_format: {
             type: "json_object",
           },
-          temperature: 0.4,
-          max_tokens: 900,
+          temperature: 0.2,
+          reasoning_effort: "low",
+          max_completion_tokens: 2400,
+          max_tokens: 2400,
         }),
       },
     );
@@ -137,12 +139,11 @@ export async function POST(request: Request) {
 
 function buildPrompt(recipe: RecipePolishPayload) {
   return JSON.stringify({
-    task: "Polish this deterministic pantry recipe for clearer, more appealing wording.",
+    task: "Rewrite only these recipe wording fields.",
     constraints: [
-      "Return JSON only.",
+      "Return one JSON object only with title, ingredients, instructions, and rationale.",
       "Keep the same ingredient list count and meaning.",
       "Do not add new ingredients.",
-      "Do not change servings, time, cuisine, pantryUsed, nextBuy, tags, or type.",
       "Keep instructions to 4-6 short steps.",
       "Use practical home-cooking language.",
     ],
@@ -222,6 +223,14 @@ function extractText(payload: unknown) {
         return message.content;
       }
 
+      if (typeof message?.reasoning_content === "string") {
+        return message.reasoning_content;
+      }
+
+      if (typeof message?.reasoning === "string") {
+        return message.reasoning;
+      }
+
       if (typeof firstChoice?.text === "string") {
         return firstChoice.text;
       }
@@ -275,8 +284,7 @@ function findLikelyText(value: unknown): string | null {
 }
 
 function parsePolishedRecipe(text: string, fallback: RecipePolishPayload) {
-  const jsonText = text.trim().replace(/^```json\s*/i, "").replace(/```$/i, "").trim();
-  const parsed = JSON.parse(jsonText) as Partial<RecipePolishPayload>;
+  const parsed = parseRecipeJson(text);
 
   const ingredients =
     Array.isArray(parsed.ingredients) && parsed.ingredients.length === fallback.ingredients?.length
@@ -298,6 +306,80 @@ function parsePolishedRecipe(text: string, fallback: RecipePolishPayload) {
         : fallback.rationale,
     source: "cloudflare-kimi",
   };
+}
+
+function parseRecipeJson(text: string) {
+  const candidates = [
+    text.trim().replace(/^```json\s*/i, "").replace(/```$/i, "").trim(),
+    ...extractJsonObjects(text),
+  ];
+
+  for (let index = candidates.length - 1; index >= 0; index -= 1) {
+    try {
+      const parsed = JSON.parse(candidates[index]) as Partial<RecipePolishPayload>;
+
+      if (
+        typeof parsed.title === "string" &&
+        Array.isArray(parsed.ingredients) &&
+        Array.isArray(parsed.instructions)
+      ) {
+        return parsed;
+      }
+    } catch {
+      // Keep trying earlier balanced JSON snippets.
+    }
+  }
+
+  throw new Error("Kimi returned text, but no valid polished recipe JSON.");
+}
+
+function extractJsonObjects(text: string) {
+  const snippets: string[] = [];
+  let depth = 0;
+  let start = -1;
+  let isInsideString = false;
+  let isEscaped = false;
+
+  for (let index = 0; index < text.length; index += 1) {
+    const char = text[index];
+
+    if (isInsideString) {
+      if (isEscaped) {
+        isEscaped = false;
+      } else if (char === "\\") {
+        isEscaped = true;
+      } else if (char === "\"") {
+        isInsideString = false;
+      }
+
+      continue;
+    }
+
+    if (char === "\"") {
+      isInsideString = true;
+      continue;
+    }
+
+    if (char === "{") {
+      if (depth === 0) {
+        start = index;
+      }
+
+      depth += 1;
+      continue;
+    }
+
+    if (char === "}" && depth > 0) {
+      depth -= 1;
+
+      if (depth === 0 && start >= 0) {
+        snippets.push(text.slice(start, index + 1));
+        start = -1;
+      }
+    }
+  }
+
+  return snippets;
 }
 
 function getOrCreateVisitorId(request: Request) {
