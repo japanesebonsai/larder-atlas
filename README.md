@@ -29,8 +29,32 @@ Larder Atlas contributes the product layer:
 - Pantry text matching
 - Practical next-buy scoring
 - Template explanations and recipes
+- Stored recipe gallery
 - Recursive visualizer
 - Browser-observed app metrics
+
+## Stored Recipe Gallery
+
+Generated recipes can be saved to Supabase and displayed in the gallery archive.
+Recipe storage is optional: the app still generates template recipes when the
+database is not configured.
+
+Create the table with:
+
+```sql
+-- supabase/recipes.sql
+```
+
+Then add these environment variables in Vercel:
+
+```bash
+SUPABASE_URL=
+SUPABASE_SERVICE_ROLE_KEY=
+```
+
+The service role key is used only in server routes. Do not expose it to browser
+components. Login is intentionally not required yet; the first stored-gallery
+version is a shared archive.
 
 ## Optional Recipe Images
 
@@ -57,6 +81,9 @@ Static Epicure data
 
 Serverless recommendation API
   Matches pantry text, scores candidates, returns recommendations
+
+Serverless recipe API
+  Saves and lists generated template recipes through Supabase REST
 
 Client visualizer
   Recursive graph layout, ingredient list, app metrics, selectable nodes
@@ -146,6 +173,7 @@ This app is Vercel-friendly as-is:
 - The browser response strips full embedding vectors.
 - No environment variables are required for recommendations or template recipes.
 - Optional Cloudflare Workers AI environment variables only enable recipe images.
+- Optional Supabase environment variables enable the stored recipe gallery.
 
 Deploy with Vercel's default Next.js settings.
 

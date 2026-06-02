@@ -15,22 +15,51 @@ type RecipeGalleryProps = {
   }>;
 };
 
+type SavedRecipe = TemplateRecipe & {
+  imageUrl?: string | null;
+  source: string;
+  createdAt: string;
+};
+
 const imageCacheKey = "larder-atlas-recipe-images";
 const maxCachedImages = 6;
 
 export function RecipeGallery({ pantry, recommendations }: RecipeGalleryProps) {
   const recipes = buildTemplateRecipes({ pantry, recommendations });
   const [images, setImages] = useState<Record<string, string>>({});
+  const [savedRecipes, setSavedRecipes] = useState<SavedRecipe[]>([]);
+  const [isRecipeStorageConfigured, setIsRecipeStorageConfigured] = useState(true);
   const [loadingId, setLoadingId] = useState("");
+  const [savingId, setSavingId] = useState("");
   const [errorById, setErrorById] = useState<Record<string, string>>({});
+  const savedRecipeKeys = new Set(
+    savedRecipes.map((recipe) => recipeKey(recipe.title, recipe.nextBuy)),
+  );
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
       setImages(readImageCache());
+      void loadSavedRecipes();
     }, 0);
 
     return () => window.clearTimeout(timeoutId);
   }, []);
+
+  async function loadSavedRecipes() {
+    try {
+      const response = await fetch("/api/recipes");
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload.message ?? payload.error ?? "Unable to load saved recipes.");
+      }
+
+      setIsRecipeStorageConfigured(Boolean(payload.configured));
+      setSavedRecipes(payload.recipes ?? []);
+    } catch {
+      setIsRecipeStorageConfigured(false);
+    }
+  }
 
   async function generateImage(recipe: TemplateRecipe) {
     setLoadingId(recipe.id);
@@ -72,6 +101,40 @@ export function RecipeGallery({ pantry, recommendations }: RecipeGalleryProps) {
       }));
     } finally {
       setLoadingId("");
+    }
+  }
+
+  async function saveRecipe(recipe: TemplateRecipe) {
+    setSavingId(recipe.id);
+    setErrorById((current) => ({ ...current, [recipe.id]: "" }));
+
+    try {
+      const response = await fetch("/api/recipes", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...recipe,
+          imageUrl: images[recipe.id],
+          source: "template",
+        }),
+      });
+      const payload = await response.json();
+
+      if (!response.ok || !payload.recipe) {
+        throw new Error(payload.message ?? payload.error ?? "Recipe save failed.");
+      }
+
+      setIsRecipeStorageConfigured(true);
+      setSavedRecipes((current) => [payload.recipe, ...current]);
+    } catch (caught) {
+      setErrorById((current) => ({
+        ...current,
+        [recipe.id]: caught instanceof Error ? caught.message : "Recipe save failed.",
+      }));
+    } finally {
+      setSavingId("");
     }
   }
 
@@ -149,6 +212,29 @@ export function RecipeGallery({ pantry, recommendations }: RecipeGalleryProps) {
                 </span>
               </div>
 
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => saveRecipe(recipe)}
+                  disabled={
+                    savingId === recipe.id ||
+                    savedRecipeKeys.has(recipeKey(recipe.title, recipe.nextBuy))
+                  }
+                  className="min-h-10 cursor-pointer rounded-full border border-[var(--app-border)] bg-[var(--app-inverse)] px-4 text-sm font-semibold text-[var(--app-inverse-text)] transition hover:bg-[var(--app-accent-soft)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-text)] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {savedRecipeKeys.has(recipeKey(recipe.title, recipe.nextBuy))
+                    ? "Saved"
+                    : savingId === recipe.id
+                      ? "Saving..."
+                      : "Save recipe"}
+                </button>
+                {!isRecipeStorageConfigured ? (
+                  <span className="text-xs font-semibold text-[var(--app-text-faint)]">
+                    Database not configured
+                  </span>
+                ) : null}
+              </div>
+
               <div className="mt-5 grid gap-5 md:grid-cols-[0.85fr_1.15fr]">
                 <div>
                   <p className="text-xs font-semibold uppercase text-[var(--app-text-faint)]">
@@ -180,6 +266,57 @@ export function RecipeGallery({ pantry, recommendations }: RecipeGalleryProps) {
           Run a pantry analysis to generate template recipes.
         </p>
       )}
+
+      <div className="mt-6 border-t border-[var(--app-border)] pt-5">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase text-[var(--app-accent)]">
+              Saved recipes
+            </p>
+            <h3 className="mt-2 text-3xl font-semibold leading-none text-[var(--app-text)]">
+              Gallery archive
+            </h3>
+          </div>
+          <p className="max-w-sm text-sm leading-6 text-[var(--app-text-faint)]">
+            Stored recipes come from the database when Supabase is configured.
+          </p>
+        </div>
+
+        {savedRecipes.length ? (
+          <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {savedRecipes.map((recipe) => (
+              <article
+                key={recipe.id}
+                className="rounded-[24px] border border-[var(--app-border)] bg-[var(--app-surface)] p-4 backdrop-blur-xl"
+              >
+                {recipe.imageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={recipe.imageUrl}
+                    alt=""
+                    className="mb-4 aspect-[16/9] w-full rounded-[18px] object-cover"
+                  />
+                ) : null}
+                <p className="text-xs font-semibold uppercase text-[var(--app-text-faint)]">
+                  {recipe.type} / {recipe.servings} servings
+                </p>
+                <h4 className="mt-2 text-2xl font-semibold leading-none text-[var(--app-text)]">
+                  {recipe.title}
+                </h4>
+                <p className="mt-3 text-sm leading-6 text-[var(--app-text-muted)]">
+                  {recipe.ingredients.slice(0, 5).join(", ")}
+                </p>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <p className="mt-5 rounded-[24px] border border-[var(--app-border)] bg-[var(--app-surface)] p-5 text-sm text-[var(--app-text-faint)]">
+            {isRecipeStorageConfigured
+              ? "Saved recipes will appear here."
+              : "Connect Supabase to save and display generated recipes."}
+          </p>
+        )}
+      </div>
     </section>
   );
 }
@@ -222,4 +359,8 @@ function writeImageCache(images: Record<string, string>) {
 
 function trimImageCache(images: Record<string, string>) {
   return Object.fromEntries(Object.entries(images).slice(-maxCachedImages));
+}
+
+function recipeKey(title: string, nextBuy: string) {
+  return `${title}:${nextBuy}`;
 }
