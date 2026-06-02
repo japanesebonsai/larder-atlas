@@ -1,5 +1,10 @@
 # Larder Atlas
 
+[![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org/)
+[![Vercel](https://img.shields.io/badge/Deploy-Vercel-black)](https://vercel.com/)
+[![Epicure](https://img.shields.io/badge/Data-Epicure-ff1fd6)](https://github.com/KAIKAKU-AI/epicure-mcp)
+[![GitHub](https://img.shields.io/badge/Star-Larder%20Atlas-b000ff)](https://github.com/japanesebonsai/larder-atlas)
+
 Map what is on hand. Find what unlocks dinner.
 
 Larder Atlas is a small Next.js app powered by static Epicure ingredient data. It turns a pantry list into matched ingredients, useful next pairs, cuisine/category affinities, template explanations, and a recursive ingredient atlas.
@@ -114,6 +119,10 @@ The in-app metrics measure Larder Atlas itself, not Epicure's research benchmark
 
 Use these as product/runtime metrics. Do not describe them as LLM-vs-Epicure benchmark results unless a separate benchmark harness is added.
 
+The `/metrics` page runs a repeatable benchmark over fixed pantry samples using
+`/api/benchmarks`. It reports local scoring speed, matched ingredient counts,
+pair counts, and `0` model calls.
+
 ## Recommendation Approach
 
 Larder Atlas uses Epicure ingredient embeddings as the base relationship map. It then applies a lightweight local scoring layer to rank practical next pairs.
@@ -190,3 +199,16 @@ Deploy with Vercel's default Next.js settings.
 Cloudflare Workers Builds are not required to host this app on Vercel. If a
 Cloudflare-generated branch exists, keep Vercel focused on the normal app
 branches and use Cloudflare only as the optional image-generation API provider.
+
+## Environment Variables
+
+| Variable | Required | Purpose |
+| --- | --- | --- |
+| `SUPABASE_URL` | No | Enables global stored recipe gallery. |
+| `SUPABASE_SERVICE_ROLE_KEY` | No | Server-only key for saving and listing recipes. |
+| `CLOUDFLARE_ACCOUNT_ID` | No | Enables optional recipe image generation. |
+| `CLOUDFLARE_API_TOKEN` | No | Cloudflare Workers AI token with Workers AI read access. |
+| `CLOUDFLARE_IMAGE_MODEL` | No | Optional model override; defaults to Flux Schnell. |
+
+No environment variables are required for pantry recommendations, recipe
+templates, benchmarks, or the atlas visualizer.

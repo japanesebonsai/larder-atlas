@@ -148,15 +148,14 @@ export function SavedRecipeGallery() {
 
               <div className="mt-5 grid gap-5">
                 <div>
-                  <p className="text-xs font-semibold uppercase text-[var(--app-text-faint)]">
-                    Ingredients
-                  </p>
-                  <ul className="mt-3 space-y-2 text-sm leading-5 text-[var(--app-text-muted)]">
-                    {recipe.ingredients.map((ingredient) => (
-                      <li key={ingredient}>{ingredient}</li>
-                    ))}
-                  </ul>
-                </div>
+                <p className="text-xs font-semibold uppercase text-[var(--app-text-faint)]">
+                  Ingredients
+                </p>
+                <GroupedIngredients
+                  ingredients={recipe.ingredients}
+                  pantryCount={recipe.pantryUsed.length}
+                />
+              </div>
 
                 <div>
                   <p className="text-xs font-semibold uppercase text-[var(--app-text-faint)]">
@@ -231,6 +230,37 @@ function TagList({ tags }: { tags: string[] }) {
         >
           {tag}
         </span>
+      ))}
+    </div>
+  );
+}
+
+function GroupedIngredients({
+  ingredients,
+  pantryCount,
+}: {
+  ingredients: string[];
+  pantryCount: number;
+}) {
+  const sections = [
+    { title: "Pair", items: ingredients.slice(0, 1) },
+    { title: "Pantry base", items: ingredients.slice(1, 1 + pantryCount) },
+    { title: "Finish", items: ingredients.slice(1 + pantryCount) },
+  ].filter((section) => section.items.length);
+
+  return (
+    <div className="mt-3 space-y-4 text-sm leading-5 text-[var(--app-text-muted)]">
+      {sections.map((section) => (
+        <div key={section.title}>
+          <p className="text-[11px] font-semibold uppercase text-[var(--app-text-faint)]">
+            {section.title}
+          </p>
+          <ul className="mt-2 space-y-2">
+            {section.items.map((ingredient) => (
+              <li key={ingredient}>{ingredient}</li>
+            ))}
+          </ul>
+        </div>
       ))}
     </div>
   );

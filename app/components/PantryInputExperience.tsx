@@ -235,8 +235,19 @@ export function PantryInputExperience({ ingredientNames }: { ingredientNames: st
               <Link href="/recipes" className="transition hover:text-[var(--app-text)]">
                 Gallery
               </Link>
+              <Link href="/metrics" className="transition hover:text-[var(--app-text)]">
+                Metrics
+              </Link>
               <a href="#about" className="transition hover:text-[var(--app-text)]">
                 About
+              </a>
+              <a
+                href="https://github.com/japanesebonsai/larder-atlas"
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-full border border-[var(--app-border)] px-3 py-1.5 transition hover:border-[var(--app-accent)] hover:text-[var(--app-text)]"
+              >
+                Star
               </a>
               <button
                 type="button"
