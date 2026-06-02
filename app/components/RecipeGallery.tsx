@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import {
   buildTemplateRecipes,
   type TemplateRecipe,
@@ -15,26 +16,17 @@ type RecipeGalleryProps = {
   }>;
 };
 
-type SavedRecipe = TemplateRecipe & {
-  imageUrl?: string | null;
-  source: string;
-  createdAt: string;
-};
-
 const imageCacheKey = "larder-atlas-recipe-images";
 const maxCachedImages = 6;
 
 export function RecipeGallery({ pantry, recommendations }: RecipeGalleryProps) {
   const recipes = buildTemplateRecipes({ pantry, recommendations });
   const [images, setImages] = useState<Record<string, string>>({});
-  const [savedRecipes, setSavedRecipes] = useState<SavedRecipe[]>([]);
+  const [savedRecipeKeys, setSavedRecipeKeys] = useState<Set<string>>(new Set());
   const [isRecipeStorageConfigured, setIsRecipeStorageConfigured] = useState(true);
   const [loadingId, setLoadingId] = useState("");
   const [savingId, setSavingId] = useState("");
   const [errorById, setErrorById] = useState<Record<string, string>>({});
-  const savedRecipeKeys = new Set(
-    savedRecipes.map((recipe) => recipeKey(recipe.title, recipe.nextBuy)),
-  );
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -55,7 +47,13 @@ export function RecipeGallery({ pantry, recommendations }: RecipeGalleryProps) {
       }
 
       setIsRecipeStorageConfigured(Boolean(payload.configured));
-      setSavedRecipes(payload.recipes ?? []);
+      setSavedRecipeKeys(
+        new Set(
+          (payload.recipes ?? []).map((recipe: TemplateRecipe) =>
+            recipeKey(recipe.title, recipe.nextBuy),
+          ),
+        ),
+      );
     } catch {
       setIsRecipeStorageConfigured(false);
     }
@@ -127,7 +125,12 @@ export function RecipeGallery({ pantry, recommendations }: RecipeGalleryProps) {
       }
 
       setIsRecipeStorageConfigured(true);
-      setSavedRecipes((current) => [payload.recipe, ...current]);
+      setSavedRecipeKeys((current) => {
+        const nextKeys = new Set(current);
+        nextKeys.add(recipeKey(recipe.title, recipe.nextBuy));
+
+        return nextKeys;
+      });
     } catch (caught) {
       setErrorById((current) => ({
         ...current,
@@ -149,10 +152,18 @@ export function RecipeGallery({ pantry, recommendations }: RecipeGalleryProps) {
             Template recipes, no AI call.
           </h2>
         </div>
-        <p className="max-w-sm text-sm leading-6 text-[var(--app-text-faint)]">
-          Drafted from the current pantry and top recommendations. These are
-          deterministic recipe templates for V1.
-        </p>
+        <div className="flex max-w-sm flex-col items-start gap-3">
+          <p className="text-sm leading-6 text-[var(--app-text-faint)]">
+            Drafted from the current pantry and top recommendations. These are
+            deterministic recipe templates for V1.
+          </p>
+          <Link
+            href="/recipes"
+            className="rounded-full border border-[var(--app-border)] bg-[var(--app-surface)] px-4 py-2 text-sm font-semibold text-[var(--app-text)] transition hover:border-[var(--app-accent)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-text)]"
+          >
+            View global gallery
+          </Link>
+        </div>
       </div>
 
       {recipes.length ? (
@@ -267,56 +278,6 @@ export function RecipeGallery({ pantry, recommendations }: RecipeGalleryProps) {
         </p>
       )}
 
-      <div className="mt-6 border-t border-[var(--app-border)] pt-5">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase text-[var(--app-accent)]">
-              Saved recipes
-            </p>
-            <h3 className="mt-2 text-3xl font-semibold leading-none text-[var(--app-text)]">
-              Gallery archive
-            </h3>
-          </div>
-          <p className="max-w-sm text-sm leading-6 text-[var(--app-text-faint)]">
-            Stored recipes come from the database when Supabase is configured.
-          </p>
-        </div>
-
-        {savedRecipes.length ? (
-          <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-            {savedRecipes.map((recipe) => (
-              <article
-                key={recipe.id}
-                className="rounded-[24px] border border-[var(--app-border)] bg-[var(--app-surface)] p-4 backdrop-blur-xl"
-              >
-                {recipe.imageUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={recipe.imageUrl}
-                    alt=""
-                    className="mb-4 aspect-[16/9] w-full rounded-[18px] object-cover"
-                  />
-                ) : null}
-                <p className="text-xs font-semibold uppercase text-[var(--app-text-faint)]">
-                  {recipe.type} / {recipe.servings} servings
-                </p>
-                <h4 className="mt-2 text-2xl font-semibold leading-none text-[var(--app-text)]">
-                  {recipe.title}
-                </h4>
-                <p className="mt-3 text-sm leading-6 text-[var(--app-text-muted)]">
-                  {recipe.ingredients.slice(0, 5).join(", ")}
-                </p>
-              </article>
-            ))}
-          </div>
-        ) : (
-          <p className="mt-5 rounded-[24px] border border-[var(--app-border)] bg-[var(--app-surface)] p-5 text-sm text-[var(--app-text-faint)]">
-            {isRecipeStorageConfigured
-              ? "Saved recipes will appear here."
-              : "Connect Supabase to save and display generated recipes."}
-          </p>
-        )}
-      </div>
     </section>
   );
 }

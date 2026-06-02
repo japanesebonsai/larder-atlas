@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from "framer-motion";
+import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { AtlasAtmosphere } from "./AtlasAtmosphere";
 import { PantryMap, type PantryMapPoint } from "./PantryMap";
@@ -237,9 +238,9 @@ export function PantryInputExperience({ ingredientNames }: { ingredientNames: st
               <a href="#top-buys" className="transition hover:text-[var(--app-text)]">
                 Buys
               </a>
-              <a href="#recipes" className="transition hover:text-[var(--app-text)]">
-                Recipes
-              </a>
+              <Link href="/recipes" className="transition hover:text-[var(--app-text)]">
+                Gallery
+              </Link>
               <a href="#about" className="transition hover:text-[var(--app-text)]">
                 About
               </a>
