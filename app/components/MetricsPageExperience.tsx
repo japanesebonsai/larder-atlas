@@ -84,6 +84,14 @@ export function MetricsPageExperience() {
             >
               Main
             </Link>
+            <a
+              href="https://github.com/japanesebonsai/larder-atlas"
+              target="_blank"
+              rel="noreferrer"
+              className="hidden rounded-full border border-[var(--app-border)] px-4 py-2 text-sm font-semibold text-[var(--app-text-muted)] transition hover:border-[var(--app-accent)] hover:text-[var(--app-text)] sm:inline"
+            >
+              Star
+            </a>
             <button
               type="button"
               onClick={() => setTheme((current) => (current === "dark" ? "light" : "dark"))}
