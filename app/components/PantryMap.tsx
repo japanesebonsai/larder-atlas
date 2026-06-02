@@ -20,6 +20,7 @@ import { useEffect, useMemo } from "react";
 export type PantryMapPoint = {
   id: number;
   name: string;
+  category: string;
   x: number;
   y: number;
   kind: "pantry" | "recommendation";
@@ -34,7 +35,8 @@ type PantryMapProps = {
 
 type IngredientNodeData = {
   name: string;
-  kind: PantryMapPoint["kind"] | "root";
+  kind: PantryMapPoint["kind"] | "branch" | "root";
+  category?: string;
   score?: number;
 };
 
@@ -74,6 +76,7 @@ export function PantryMap({ points, selectedPointId, onSelectPoint }: PantryMapP
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onNodeClick={(_, node) => onSelectPoint?.(node.id)}
+          nodesDraggable
           fitView
           fitViewOptions={{ padding: 0.28 }}
           minZoom={0.55}
@@ -150,12 +153,16 @@ function IngredientNode({ data }: NodeProps<Node<IngredientNodeData>>) {
       ? "border-[var(--app-border-strong)] bg-[var(--app-inverse)] text-[var(--app-inverse-text)]"
       : data.kind === "root"
         ? "border-[#b000ff]/45 bg-[var(--app-violet)]/16 text-[var(--app-accent-text)]"
+        : data.kind === "branch"
+          ? "border-[var(--app-border-strong)] bg-[var(--app-field)] text-[var(--app-text)]"
         : "border-[var(--app-accent)] bg-[var(--app-accent-soft)] text-[var(--app-accent-text)]";
   const dot =
     data.kind === "pantry"
       ? "bg-[var(--app-inverse-text)]"
       : data.kind === "root"
         ? "bg-[var(--app-violet)]"
+        : data.kind === "branch"
+          ? "bg-[var(--app-text-muted)]"
         : "bg-[var(--app-accent)]";
 
   return (
@@ -164,12 +171,14 @@ function IngredientNode({ data }: NodeProps<Node<IngredientNodeData>>) {
       animate={{ opacity: 1, scale: 1 }}
       whileHover={{ scale: 1.03 }}
       transition={{ type: "spring", stiffness: 360, damping: 26 }}
-      className={`min-w-32 rounded-full border px-3 py-2 text-xs font-semibold shadow-sm backdrop-blur-md ${style}`}
+      className={`min-w-36 max-w-48 rounded-full border px-3 py-2 text-xs font-semibold shadow-sm backdrop-blur-md ${style}`}
     >
       <Handle type="target" position={Position.Top} className="opacity-0" />
       <div className="flex items-center gap-2">
         <span className={`h-2.5 w-2.5 rounded-full ${dot}`} />
-        <span>{data.name}</span>
+        <span className="truncate" title={data.name}>
+          {data.name}
+        </span>
       </div>
       <Handle type="source" position={Position.Bottom} className="opacity-0" />
     </motion.div>
@@ -185,19 +194,26 @@ function buildGraph(points: PantryMapPoint[]): {
   const groups = buildRecommendationGroups(pantry, recommendations);
   const nodes: Node<IngredientNodeData>[] = [];
   const edges: Edge[] = [];
-  const rowHeight = 86;
-  const branchGap = 28;
+  const rowHeight = 104;
+  const branchGap = 36;
+  const categoryGap = 18;
   const rootX = 0;
-  const pantryX = 300;
-  const recommendationX = 630;
+  const pantryX = 260;
+  const branchX = 530;
+  const recommendationX = 820;
   let cursorY = 0;
 
   for (const pantryPoint of pantry) {
-    const children = groups.get(pointId(pantryPoint)) ?? [];
-    const branchRows = Math.max(1, children.length);
+    const categoryGroups = groups.get(pointId(pantryPoint)) ?? new Map();
+    const categories = Array.from(categoryGroups.entries());
+    const branchRows = Math.max(
+      1,
+      categories.reduce((total, [, children]) => total + Math.max(1, children.length), 0),
+    );
     const branchTop = cursorY;
     const branchBottom = cursorY + (branchRows - 1) * rowHeight;
     const pantryY = (branchTop + branchBottom) / 2;
+    let branchCursorY = branchTop;
 
     nodes.push({
       id: pointId(pantryPoint),
@@ -206,6 +222,7 @@ function buildGraph(points: PantryMapPoint[]): {
       data: {
         name: pantryPoint.name,
         kind: pantryPoint.kind,
+        category: pantryPoint.category,
         score: pantryPoint.score,
       },
     });
@@ -218,50 +235,124 @@ function buildGraph(points: PantryMapPoint[]): {
       style: { stroke: "var(--app-border-strong)", strokeWidth: 1.8 },
     });
 
-    for (const [index, recommendation] of children.entries()) {
-      const recommendationY = branchTop + index * rowHeight;
+    for (const [category, children] of categories) {
+      const categoryRows = Math.max(1, children.length);
+      const categoryTop = branchCursorY;
+      const categoryBottom = categoryTop + (categoryRows - 1) * rowHeight;
+      const categoryY = (categoryTop + categoryBottom) / 2;
+      const branchId = branchNodeId(pantryPoint, category);
 
       nodes.push({
-        id: pointId(recommendation),
+        id: branchId,
         type: "ingredient",
-        position: { x: recommendationX, y: recommendationY },
+        position: { x: branchX, y: categoryY },
         data: {
-          name: recommendation.name,
-          kind: recommendation.kind,
-          score: recommendation.score,
+          name: category,
+          kind: "branch",
         },
       });
 
       edges.push({
-        id: `${pointId(pantryPoint)}-${pointId(recommendation)}`,
+        id: `${pointId(pantryPoint)}-${branchId}`,
         source: pointId(pantryPoint),
-        target: pointId(recommendation),
-        label: "near",
+        target: branchId,
+        label: "branch",
         type: "smoothstep",
-        markerEnd: { type: MarkerType.ArrowClosed, color: "var(--app-accent)" },
-        style: { stroke: "var(--app-accent)", strokeWidth: 2.4 },
-        labelStyle: { fill: "var(--app-accent-text)", fontSize: 11, fontWeight: 700 },
+        style: { stroke: "var(--app-border-strong)", strokeWidth: 1.8 },
+        labelStyle: { fill: "var(--app-text-muted)", fontSize: 11, fontWeight: 700 },
         labelBgStyle: { fill: "var(--app-graph-label-bg)", fillOpacity: 0.74 },
       });
+
+      for (const [index, recommendation] of children.entries()) {
+        const recommendationY = categoryTop + index * rowHeight;
+
+        nodes.push({
+          id: pointId(recommendation),
+          type: "ingredient",
+          position: { x: recommendationX, y: recommendationY },
+          data: {
+            name: recommendation.name,
+            kind: recommendation.kind,
+            category: recommendation.category,
+            score: recommendation.score,
+          },
+        });
+
+        edges.push({
+          id: `${branchId}-${pointId(recommendation)}`,
+          source: branchId,
+          target: pointId(recommendation),
+          label: "pair",
+          type: "smoothstep",
+          markerEnd: { type: MarkerType.ArrowClosed, color: "var(--app-accent)" },
+          style: { stroke: "var(--app-accent)", strokeWidth: 2.4 },
+          labelStyle: { fill: "var(--app-accent-text)", fontSize: 11, fontWeight: 700 },
+          labelBgStyle: { fill: "var(--app-graph-label-bg)", fillOpacity: 0.74 },
+        });
+      }
+
+      branchCursorY += categoryRows * rowHeight + categoryGap;
     }
 
-    cursorY += branchRows * rowHeight + branchGap;
+    cursorY += branchRows * rowHeight + branchGap + categories.length * categoryGap;
   }
 
   if (!pantry.length && recommendations.length) {
-    for (const [index, recommendation] of recommendations.entries()) {
+    const categoryGroups = groupByCategory(recommendations);
+    let branchCursorY = 0;
+
+    for (const [category, children] of categoryGroups.entries()) {
+      const categoryRows = Math.max(1, children.length);
+      const categoryTop = branchCursorY;
+      const categoryBottom = categoryTop + (categoryRows - 1) * rowHeight;
+      const categoryY = (categoryTop + categoryBottom) / 2;
+      const branchId = `branch-orphan-${slugify(category)}`;
+
       nodes.push({
-        id: pointId(recommendation),
+        id: branchId,
         type: "ingredient",
-        position: { x: recommendationX, y: index * rowHeight },
+        position: { x: branchX, y: categoryY },
         data: {
-          name: recommendation.name,
-          kind: recommendation.kind,
-          score: recommendation.score,
+          name: category,
+          kind: "branch",
         },
       });
+
+      edges.push({
+        id: `root-${branchId}`,
+        source: "root-pantry",
+        target: branchId,
+        type: "smoothstep",
+        style: { stroke: "var(--app-border-strong)", strokeWidth: 1.8 },
+      });
+
+      for (const [index, recommendation] of children.entries()) {
+        nodes.push({
+          id: pointId(recommendation),
+          type: "ingredient",
+          position: { x: recommendationX, y: categoryTop + index * rowHeight },
+          data: {
+            name: recommendation.name,
+            kind: recommendation.kind,
+            category: recommendation.category,
+            score: recommendation.score,
+          },
+        });
+
+        edges.push({
+          id: `${branchId}-${pointId(recommendation)}`,
+          source: branchId,
+          target: pointId(recommendation),
+          type: "smoothstep",
+          markerEnd: { type: MarkerType.ArrowClosed, color: "var(--app-accent)" },
+          style: { stroke: "var(--app-accent)", strokeWidth: 2.2 },
+        });
+      }
+
+      branchCursorY += categoryRows * rowHeight + categoryGap;
     }
-    cursorY = recommendations.length * rowHeight;
+
+    cursorY = branchCursorY;
   }
 
   const rootY = Math.max(0, (cursorY - branchGap - rowHeight) / 2);
@@ -276,20 +367,6 @@ function buildGraph(points: PantryMapPoint[]): {
     },
     draggable: true,
   });
-
-  if (!pantry.length) {
-    edges.push(
-      ...recommendations.map((recommendation) => ({
-        id: `root-${pointId(recommendation)}`,
-        source: "root-pantry",
-        target: pointId(recommendation),
-        type: "smoothstep",
-        markerEnd: { type: MarkerType.ArrowClosed, color: "var(--app-accent)" },
-        style: { stroke: "var(--app-accent)", strokeWidth: 2.2 },
-      })),
-    );
-  }
-
   return { nodes, edges };
 }
 
@@ -297,8 +374,8 @@ function buildRecommendationGroups(
   pantry: PantryMapPoint[],
   recommendations: PantryMapPoint[],
 ) {
-  const groups = new Map<string, PantryMapPoint[]>(
-    pantry.map((pantryPoint) => [pointId(pantryPoint), []]),
+  const groups = new Map<string, Map<string, PantryMapPoint[]>>(
+    pantry.map((pantryPoint) => [pointId(pantryPoint), new Map()]),
   );
 
   for (const recommendation of recommendations) {
@@ -306,11 +383,24 @@ function buildRecommendationGroups(
     const key = nearest ? pointId(nearest) : pointId(pantry[0]);
 
     if (key) {
-      groups.get(key)?.push(recommendation);
+      const categoryGroups = groups.get(key);
+      const category = recommendation.category || "Pair";
+      const children = categoryGroups?.get(category) ?? [];
+      categoryGroups?.set(category, [...children, recommendation]);
     }
   }
 
   return groups;
+}
+
+function groupByCategory(points: PantryMapPoint[]) {
+  return points.reduce((groups, point) => {
+    const category = point.category || "Pair";
+    const current = groups.get(category) ?? [];
+    groups.set(category, [...current, point]);
+
+    return groups;
+  }, new Map<string, PantryMapPoint[]>());
 }
 
 function findNearestPoint(
@@ -327,4 +417,12 @@ function findNearestPoint(
 
 function pointId(point: PantryMapPoint) {
   return `${point.kind}-${point.id}`;
+}
+
+function branchNodeId(point: PantryMapPoint, category: string) {
+  return `branch-${point.id}-${slugify(category)}`;
+}
+
+function slugify(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 }

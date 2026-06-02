@@ -1012,6 +1012,7 @@ function buildMapPoints(analysis: RecommendResponse | null): PantryMapPoint[] {
     .map((item) => ({
       id: item.ingredient.nodeId,
       name: humanize(item.ingredient.name),
+      category: humanize(item.ingredient.primaryCategory),
       x: item.ingredient.atlas?.x ?? 0,
       y: item.ingredient.atlas?.y ?? 0,
       kind: "pantry" as const,
@@ -1022,6 +1023,7 @@ function buildMapPoints(analysis: RecommendResponse | null): PantryMapPoint[] {
     .map((item) => ({
       id: item.ingredient.nodeId,
       name: humanize(item.ingredient.name),
+      category: humanize(item.ingredient.primaryCategory),
       x: item.ingredient.atlas?.x ?? 0,
       y: item.ingredient.atlas?.y ?? 0,
       kind: "recommendation" as const,
