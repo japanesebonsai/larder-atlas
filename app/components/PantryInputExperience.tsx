@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from "framer-motion";
+import { Star } from "lucide-react";
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { AtlasAtmosphere } from "./AtlasAtmosphere";
@@ -245,9 +246,10 @@ export function PantryInputExperience({ ingredientNames }: { ingredientNames: st
                 href="https://github.com/japanesebonsai/larder-atlas"
                 target="_blank"
                 rel="noreferrer"
-                className="rounded-full border border-[var(--app-border)] px-3 py-1.5 transition hover:border-[var(--app-accent)] hover:text-[var(--app-text)]"
+                className="inline-flex items-center gap-2 rounded-full border border-[var(--app-border)] px-3 py-1.5 transition hover:border-[var(--app-accent)] hover:text-[var(--app-text)]"
               >
-                Star
+                <Star aria-hidden="true" className="size-3.5" strokeWidth={2} />
+                Star on GitHub
               </a>
               <button
                 type="button"

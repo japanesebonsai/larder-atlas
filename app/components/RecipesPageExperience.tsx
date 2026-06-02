@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Star } from "lucide-react";
 import { useEffect, useState } from "react";
 import { AtlasAtmosphere } from "./AtlasAtmosphere";
 import { SavedRecipeGallery } from "./SavedRecipeGallery";
@@ -56,9 +57,10 @@ export function RecipesPageExperience() {
               href="https://github.com/japanesebonsai/larder-atlas"
               target="_blank"
               rel="noreferrer"
-              className="hidden rounded-full border border-[var(--app-border)] px-4 py-2 text-sm font-semibold text-[var(--app-text-muted)] transition hover:border-[var(--app-accent)] hover:text-[var(--app-text)] sm:inline"
+              className="hidden items-center gap-2 rounded-full border border-[var(--app-border)] px-4 py-2 text-sm font-semibold text-[var(--app-text-muted)] transition hover:border-[var(--app-accent)] hover:text-[var(--app-text)] sm:inline-flex"
             >
-              Star
+              <Star aria-hidden="true" className="size-3.5" strokeWidth={2} />
+              Star on GitHub
             </a>
             <button
               type="button"
