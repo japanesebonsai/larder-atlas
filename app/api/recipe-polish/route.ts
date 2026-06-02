@@ -171,8 +171,47 @@ function extractText(payload: unknown) {
   if (result && typeof result === "object") {
     const resultRecord = result as Record<string, unknown>;
 
+    if (
+      typeof resultRecord.title === "string" &&
+      Array.isArray(resultRecord.ingredients) &&
+      Array.isArray(resultRecord.instructions)
+    ) {
+      return JSON.stringify(resultRecord);
+    }
+
     if (typeof resultRecord.response === "string") {
       return resultRecord.response;
+    }
+
+    if (typeof resultRecord.text === "string") {
+      return resultRecord.text;
+    }
+
+    if (typeof resultRecord.content === "string") {
+      return resultRecord.content;
+    }
+
+    if (Array.isArray(resultRecord.content)) {
+      const contentText = resultRecord.content
+        .map((item) => {
+          if (typeof item === "string") {
+            return item;
+          }
+
+          if (item && typeof item === "object") {
+            const itemRecord = item as Record<string, unknown>;
+
+            return typeof itemRecord.text === "string" ? itemRecord.text : "";
+          }
+
+          return "";
+        })
+        .join("")
+        .trim();
+
+      if (contentText) {
+        return contentText;
+      }
     }
 
     if (Array.isArray(resultRecord.choices)) {
@@ -182,10 +221,57 @@ function extractText(payload: unknown) {
       if (typeof message?.content === "string") {
         return message.content;
       }
+
+      if (typeof firstChoice?.text === "string") {
+        return firstChoice.text;
+      }
+    }
+
+    const nestedText = findLikelyText(resultRecord);
+
+    if (nestedText) {
+      return nestedText;
     }
   }
 
   throw new Error("Cloudflare response did not include text.");
+}
+
+function findLikelyText(value: unknown): string | null {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  const textKeys = ["response", "text", "content", "output", "generated_text"];
+  const record = value as Record<string, unknown>;
+
+  for (const key of textKeys) {
+    const candidate = record[key];
+
+    if (typeof candidate === "string" && candidate.trim()) {
+      return candidate;
+    }
+  }
+
+  for (const candidate of Object.values(record)) {
+    if (Array.isArray(candidate)) {
+      for (const item of candidate) {
+        const nestedText = findLikelyText(item);
+
+        if (nestedText) {
+          return nestedText;
+        }
+      }
+    } else if (candidate && typeof candidate === "object") {
+      const nestedText = findLikelyText(candidate);
+
+      if (nestedText) {
+        return nestedText;
+      }
+    }
+  }
+
+  return null;
 }
 
 function parsePolishedRecipe(text: string, fallback: RecipePolishPayload) {
