@@ -2,7 +2,7 @@
 
 Map what is on hand. Find what unlocks dinner.
 
-Larder Atlas is a small Next.js app powered by static Epicure ingredient data. It turns a pantry list into matched ingredients, useful next buys, cuisine/category affinities, template explanations, and a recursive ingredient atlas.
+Larder Atlas is a small Next.js app powered by static Epicure ingredient data. It turns a pantry list into matched ingredients, useful next pairs, cuisine/category affinities, template explanations, and a recursive ingredient atlas.
 
 Epicure provides the ingredient embedding space and metadata. Larder Atlas adds a practical recommendation layer on top of that data, tuned for pantry usefulness rather than pure similarity.
 
@@ -27,10 +27,34 @@ Epicure contributes the bundled ingredient map:
 Larder Atlas contributes the product layer:
 
 - Pantry text matching
-- Practical next-buy scoring
+- Practical next-pair scoring
 - Template explanations and recipes
+- Stored recipe gallery
 - Recursive visualizer
 - Browser-observed app metrics
+
+## Stored Recipe Gallery
+
+Generated recipes can be saved to Supabase and displayed in the gallery archive.
+Recipe storage is optional: the app still generates template recipes when the
+database is not configured.
+
+Create the table with:
+
+```sql
+-- supabase/recipes.sql
+```
+
+Then add these environment variables in Vercel:
+
+```bash
+SUPABASE_URL=
+SUPABASE_SERVICE_ROLE_KEY=
+```
+
+The service role key is used only in server routes. Do not expose it to browser
+components. Login is intentionally not required yet; the first stored-gallery
+version is a shared archive.
 
 ## Optional Recipe Images
 
@@ -58,6 +82,9 @@ Static Epicure data
 Serverless recommendation API
   Matches pantry text, scores candidates, returns recommendations
 
+Serverless recipe API
+  Saves and lists generated template recipes through Supabase REST
+
 Client visualizer
   Recursive graph layout, ingredient list, app metrics, selectable nodes
 ```
@@ -79,7 +106,7 @@ Use these as product/runtime metrics. Do not describe them as LLM-vs-Epicure ben
 
 ## Recommendation Approach
 
-Larder Atlas uses Epicure ingredient embeddings as the base relationship map. It then applies a lightweight local scoring layer to rank practical next buys.
+Larder Atlas uses Epicure ingredient embeddings as the base relationship map. It then applies a lightweight local scoring layer to rank practical next pairs.
 
 This scoring layer intentionally favors complementary ingredients, such as herbs, spices, vegetables, grains, and pantry staples, over same-category substitutes like one meat replacing another. This is a Larder Atlas product heuristic designed for pantry usefulness. It is not a claim made by the Epicure paper.
 
@@ -146,6 +173,7 @@ This app is Vercel-friendly as-is:
 - The browser response strips full embedding vectors.
 - No environment variables are required for recommendations or template recipes.
 - Optional Cloudflare Workers AI environment variables only enable recipe images.
+- Optional Supabase environment variables enable the stored recipe gallery.
 
 Deploy with Vercel's default Next.js settings.
 

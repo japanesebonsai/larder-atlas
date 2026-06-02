@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from "framer-motion";
+import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { AtlasAtmosphere } from "./AtlasAtmosphere";
 import { PantryMap, type PantryMapPoint } from "./PantryMap";
@@ -205,12 +206,12 @@ export function PantryInputExperience({ ingredientNames }: { ingredientNames: st
   return (
     <LayoutGroup>
       <a
-        href="#main"
+        href="#main-content"
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-[var(--app-inverse)] focus:px-4 focus:py-3 focus:text-sm focus:font-bold focus:text-[var(--app-inverse-text)]"
       >
         Skip to main content
       </a>
-      <main id="main" tabIndex={-1} className="relative min-h-screen text-[var(--app-text)]">
+      <main className="relative min-h-screen text-[var(--app-text)]">
         <AtlasAtmosphere theme={theme} />
         <div className="mx-auto flex min-h-screen w-full max-w-[1320px] flex-col px-4 py-5 sm:px-6 lg:px-8">
           <header className="flex min-h-14 items-center justify-between border-b border-[var(--app-border)]">
@@ -234,12 +235,12 @@ export function PantryInputExperience({ ingredientNames }: { ingredientNames: st
               <a href="#atlas" className="transition hover:text-[var(--app-text)]">
                 Atlas
               </a>
-              <a href="#top-buys" className="transition hover:text-[var(--app-text)]">
-                Buys
+              <a href="#top-pairs" className="transition hover:text-[var(--app-text)]">
+                Pairs
               </a>
-              <a href="#recipes" className="transition hover:text-[var(--app-text)]">
-                Recipes
-              </a>
+              <Link href="/recipes" className="transition hover:text-[var(--app-text)]">
+                Gallery
+              </Link>
               <a href="#about" className="transition hover:text-[var(--app-text)]">
                 About
               </a>
@@ -253,7 +254,11 @@ export function PantryInputExperience({ ingredientNames }: { ingredientNames: st
             </div>
           </header>
 
-          <section className="grid gap-10 border-b border-[var(--app-border)] py-10 lg:min-h-[680px] lg:grid-cols-[minmax(0,1fr)_420px] lg:items-end lg:py-16">
+          <section
+            id="main-content"
+            tabIndex={-1}
+            className="grid gap-10 border-b border-[var(--app-border)] py-10 outline-none lg:min-h-[680px] lg:grid-cols-[minmax(0,1fr)_420px] lg:items-end lg:py-16"
+          >
             <div className="max-w-5xl">
               <p className="text-xs font-semibold uppercase text-[var(--app-accent)]">
                 Epicure system
@@ -263,7 +268,7 @@ export function PantryInputExperience({ ingredientNames }: { ingredientNames: st
               </h1>
               <div className="mt-8 grid max-w-3xl gap-5 md:grid-cols-[1fr_220px] md:items-end">
                 <p className="text-xl leading-8 text-[var(--app-text-muted)] sm:text-2xl">
-                  Ingredients in. One useful buy out.
+                  Ingredients in. One useful pair out.
                 </p>
                 <div className="border-l border-[var(--app-border)] pl-5 text-sm leading-6 text-[var(--app-text-faint)]">
                   Static Epicure data. Fast recommendations. No extra noise.
@@ -445,7 +450,7 @@ export function PantryInputExperience({ ingredientNames }: { ingredientNames: st
               layout
               className="min-h-[260px] rounded-[28px] border border-[var(--app-border)] bg-[var(--app-surface)] p-5 text-[var(--app-text)] backdrop-blur-xl"
             >
-              <SectionLabel inverted>Smartest buy</SectionLabel>
+              <SectionLabel inverted>Smartest pair</SectionLabel>
               <AnimatePresence mode="wait">
                 {topRecommendation ? (
                   <motion.div
@@ -470,7 +475,7 @@ export function PantryInputExperience({ ingredientNames }: { ingredientNames: st
                   </motion.div>
                 ) : (
                   <p className="mt-6 max-w-2xl text-lg leading-8 text-[var(--app-text-muted)]">
-                    Enter a few ingredients to get a practical first buy.
+                    Enter a few ingredients to get a practical first pair.
                   </p>
                 )}
               </AnimatePresence>
@@ -550,8 +555,8 @@ export function PantryInputExperience({ ingredientNames }: { ingredientNames: st
             </div>
           </section>
 
-          <section id="top-buys" className="py-5">
-            <SectionLabel>Top buys</SectionLabel>
+          <section id="top-pairs" className="py-5">
+            <SectionLabel>Top pairs</SectionLabel>
             {analysis?.recommendations.length ? (
               <motion.div layout className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                 <AnimatePresence mode="popLayout">
@@ -613,7 +618,7 @@ export function PantryInputExperience({ ingredientNames }: { ingredientNames: st
                   Larder Atlas turns static Epicure ingredient data into a small
                   pantry decision tool. Epicure provides the ingredient embedding
                   space and metadata. Larder Atlas adds a practical recommendation
-                  layer that favors useful next buys over direct substitutes.
+                  layer that favors useful next pairs over direct substitutes.
                 </p>
                 <p className="mt-4 max-w-2xl text-sm leading-6 text-[var(--app-text-faint)]">
                   The complementary scoring layer is a Larder Atlas product
@@ -658,11 +663,15 @@ export function PantryInputExperience({ ingredientNames }: { ingredientNames: st
                       href="https://github.com/KAIKAKU-AI/epicure-mcp"
                       label="Epicure MCP"
                       body="Public read-only MCP server for Epicure."
+                      imageSrc="/epicure-mcp-logo.png"
+                      imageAlt="Epicure MCP logo"
                     />
                     <ReferenceLink
                       href="https://arxiv.org/abs/2605.22391"
                       label="Epicure paper"
                       body="Navigating the emergent geometry of food ingredient embeddings."
+                      imageSrc="/epicure-paper-preview.svg"
+                      imageAlt="Epicure paper preview"
                     />
                   </div>
                 </InfoPanel>
@@ -722,20 +731,36 @@ function ReferenceLink({
   href,
   label,
   body,
+  imageSrc,
+  imageAlt,
 }: {
   href: string;
   label: string;
   body: string;
+  imageSrc?: string;
+  imageAlt?: string;
 }) {
   return (
     <a
       href={href}
       target="_blank"
       rel="noreferrer"
-      className="rounded-[24px] border border-[var(--app-border)] bg-[var(--app-field)] p-4 transition hover:border-[var(--app-accent)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-text)]"
+      className="overflow-hidden rounded-[24px] border border-[var(--app-border)] bg-[var(--app-field)] transition hover:border-[var(--app-accent)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-text)]"
     >
-      <span className="text-sm font-semibold text-[var(--app-text)]">{label}</span>
-      <span className="mt-2 block text-sm leading-6 text-[var(--app-text-faint)]">{body}</span>
+      {imageSrc ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={imageSrc}
+          alt={imageAlt ?? ""}
+          className="aspect-[16/9] w-full border-b border-[var(--app-border)] object-cover"
+        />
+      ) : null}
+      <span className="block p-4">
+        <span className="text-sm font-semibold text-[var(--app-text)]">{label}</span>
+        <span className="mt-2 block text-sm leading-6 text-[var(--app-text-faint)]">
+          {body}
+        </span>
+      </span>
     </a>
   );
 }
@@ -811,7 +836,7 @@ function IngredientList({
               );
             })
           ) : (
-            <EmptyListText>No buys yet.</EmptyListText>
+            <EmptyListText>No pairs yet.</EmptyListText>
           )}
         </IngredientListGroup>
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import {
   buildTemplateRecipes,
   type TemplateRecipe,
@@ -21,16 +22,42 @@ const maxCachedImages = 6;
 export function RecipeGallery({ pantry, recommendations }: RecipeGalleryProps) {
   const recipes = buildTemplateRecipes({ pantry, recommendations });
   const [images, setImages] = useState<Record<string, string>>({});
+  const [savedRecipeKeys, setSavedRecipeKeys] = useState<Set<string>>(new Set());
+  const [isRecipeStorageConfigured, setIsRecipeStorageConfigured] = useState(true);
   const [loadingId, setLoadingId] = useState("");
+  const [savingId, setSavingId] = useState("");
   const [errorById, setErrorById] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
       setImages(readImageCache());
+      void loadSavedRecipes();
     }, 0);
 
     return () => window.clearTimeout(timeoutId);
   }, []);
+
+  async function loadSavedRecipes() {
+    try {
+      const response = await fetch("/api/recipes");
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload.message ?? payload.error ?? "Unable to load saved recipes.");
+      }
+
+      setIsRecipeStorageConfigured(Boolean(payload.configured));
+      setSavedRecipeKeys(
+        new Set(
+          (payload.recipes ?? []).map((recipe: TemplateRecipe) =>
+            recipeKey(recipe.title, recipe.nextBuy),
+          ),
+        ),
+      );
+    } catch {
+      setIsRecipeStorageConfigured(false);
+    }
+  }
 
   async function generateImage(recipe: TemplateRecipe) {
     setLoadingId(recipe.id);
@@ -75,6 +102,45 @@ export function RecipeGallery({ pantry, recommendations }: RecipeGalleryProps) {
     }
   }
 
+  async function saveRecipe(recipe: TemplateRecipe) {
+    setSavingId(recipe.id);
+    setErrorById((current) => ({ ...current, [recipe.id]: "" }));
+
+    try {
+      const response = await fetch("/api/recipes", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...recipe,
+          imageUrl: images[recipe.id],
+          source: "template",
+        }),
+      });
+      const payload = await response.json();
+
+      if (!response.ok || !payload.recipe) {
+        throw new Error(payload.message ?? payload.error ?? "Recipe save failed.");
+      }
+
+      setIsRecipeStorageConfigured(true);
+      setSavedRecipeKeys((current) => {
+        const nextKeys = new Set(current);
+        nextKeys.add(recipeKey(recipe.title, recipe.nextBuy));
+
+        return nextKeys;
+      });
+    } catch (caught) {
+      setErrorById((current) => ({
+        ...current,
+        [recipe.id]: caught instanceof Error ? caught.message : "Recipe save failed.",
+      }));
+    } finally {
+      setSavingId("");
+    }
+  }
+
   return (
     <section id="recipes" className="border-b border-[var(--app-border)] py-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -86,10 +152,18 @@ export function RecipeGallery({ pantry, recommendations }: RecipeGalleryProps) {
             Template recipes, no AI call.
           </h2>
         </div>
-        <p className="max-w-sm text-sm leading-6 text-[var(--app-text-faint)]">
-          Drafted from the current pantry and top recommendations. These are
-          deterministic recipe templates for V1.
-        </p>
+        <div className="flex max-w-sm flex-col items-start gap-3">
+          <p className="text-sm leading-6 text-[var(--app-text-faint)]">
+            Drafted from the current pantry and top recommendations. These are
+            deterministic recipe templates for V1.
+          </p>
+          <Link
+            href="/recipes"
+            className="rounded-full border border-[var(--app-border)] bg-[var(--app-surface)] px-4 py-2 text-sm font-semibold text-[var(--app-text)] transition hover:border-[var(--app-accent)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-text)]"
+          >
+            View global gallery
+          </Link>
+        </div>
       </div>
 
       {recipes.length ? (
@@ -149,6 +223,29 @@ export function RecipeGallery({ pantry, recommendations }: RecipeGalleryProps) {
                 </span>
               </div>
 
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => saveRecipe(recipe)}
+                  disabled={
+                    savingId === recipe.id ||
+                    savedRecipeKeys.has(recipeKey(recipe.title, recipe.nextBuy))
+                  }
+                  className="min-h-10 cursor-pointer rounded-full border border-[var(--app-border)] bg-[var(--app-inverse)] px-4 text-sm font-semibold text-[var(--app-inverse-text)] transition hover:bg-[var(--app-accent-soft)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-text)] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {savedRecipeKeys.has(recipeKey(recipe.title, recipe.nextBuy))
+                    ? "Saved"
+                    : savingId === recipe.id
+                      ? "Saving..."
+                      : "Save recipe"}
+                </button>
+                {!isRecipeStorageConfigured ? (
+                  <span className="text-xs font-semibold text-[var(--app-text-faint)]">
+                    Database not configured
+                  </span>
+                ) : null}
+              </div>
+
               <div className="mt-5 grid gap-5 md:grid-cols-[0.85fr_1.15fr]">
                 <div>
                   <p className="text-xs font-semibold uppercase text-[var(--app-text-faint)]">
@@ -180,6 +277,7 @@ export function RecipeGallery({ pantry, recommendations }: RecipeGalleryProps) {
           Run a pantry analysis to generate template recipes.
         </p>
       )}
+
     </section>
   );
 }
@@ -222,4 +320,8 @@ function writeImageCache(images: Record<string, string>) {
 
 function trimImageCache(images: Record<string, string>) {
   return Object.fromEntries(Object.entries(images).slice(-maxCachedImages));
+}
+
+function recipeKey(title: string, nextBuy: string) {
+  return `${title}:${nextBuy}`;
 }
