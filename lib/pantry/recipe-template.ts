@@ -115,13 +115,15 @@ function buildIngredientList(
   pantry: string[],
   cuisine: string,
 ) {
-  const finish = cuisine.toLowerCase().includes("east") ? "soy sauce or vinegar" : "lemon or vinegar";
+  const finish = cuisine.toLowerCase().includes("east")
+    ? "1 tsp soy sauce or rice vinegar"
+    : "1 tsp lemon juice or vinegar";
 
   return [
-    humanize(ingredient.name),
-    ...pantry.map(humanize),
-    ...pantryStaples,
-    "oil or cooking fat",
+    formatIngredient(ingredient.name, "pair", ingredient.primaryCategory),
+    ...pantry.map((item) => formatIngredient(item, "pantry")),
+    ...pantryStaples.map((item) => formatIngredient(item, "seasoning")),
+    "1 tbsp oil or cooking fat",
     finish,
   ];
 }
@@ -140,11 +142,12 @@ function buildInstructions(
     : "Finish with lemon or vinegar for brightness.";
 
   return [
-    `Prep ${next}, ${anchor}${supporting ? `, and ${supporting}` : ""} into bite-size pieces.`,
-    `Warm oil in a pan and cook the heartier pantry ingredients first.`,
-    `Add ${next} and season with salt, black pepper, and a small splash of water.`,
+    `Prep ${next}, ${anchor}${supporting ? `, and ${supporting}` : ""} so everything cooks at the same pace.`,
+    `Heat oil in a skillet over medium heat, then cook the heartier pantry ingredients until they soften or warm through.`,
+    `Add ${next}; stir until fragrant, glossy, or lightly browned depending on the ingredient.`,
+    `Season with salt and black pepper, adding a splash of water if the pan looks dry.`,
     `${finish}`,
-    `Serve as a ${type}; keep the texture loose enough to spoon or plate cleanly.`,
+    `Serve as a ${type} while warm, with the pantry base carrying the pair ingredient instead of burying it.`,
   ];
 }
 
@@ -187,4 +190,47 @@ function buildRationale(
 
 function humanize(value: string) {
   return value.replaceAll("_", " ");
+}
+
+function formatIngredient(
+  value: string,
+  role: "pair" | "pantry" | "seasoning",
+  category = "",
+) {
+  const ingredient = humanize(value);
+  const normalized = value.toLowerCase();
+
+  if (role === "seasoning") {
+    if (normalized === "water") {
+      return "2-3 tbsp water, as needed";
+    }
+
+    return `${ingredient}, to taste`;
+  }
+
+  if (category === "Spice" || category === "Herb") {
+    return `1-2 tsp ${ingredient}`;
+  }
+
+  if (category === "Sauce" || category === "Condiment") {
+    return `1 tbsp ${ingredient}`;
+  }
+
+  if (category === "Meat" || category === "Seafood") {
+    return `150-200 g ${ingredient}`;
+  }
+
+  if (category === "Vegetable" || category === "Legume") {
+    return `1 cup ${ingredient}, sliced or chopped`;
+  }
+
+  if (normalized.includes("rice") || normalized.includes("grain")) {
+    return `1 cup cooked ${ingredient}`;
+  }
+
+  if (normalized.includes("egg")) {
+    return `1 ${ingredient}`;
+  }
+
+  return role === "pair" ? `1 portion ${ingredient}` : `1 small handful ${ingredient}`;
 }
