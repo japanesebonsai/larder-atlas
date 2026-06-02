@@ -56,6 +56,13 @@ The service role key is used only in server routes. Do not expose it to browser
 components. Login is intentionally not required yet; the first stored-gallery
 version is a shared archive.
 
+## Recipe Templates
+
+Recipe generation is deterministic and does not call a model. Templates use the
+current pantry, top ingredient pairs, cuisine region, food group, vegetarian or
+vegan flags, and NOVA metadata from Epicure. Saved recipes include tags and a
+short rationale explaining why the pair works.
+
 ## Optional Recipe Images
 
 Template recipes do not require AI. Recipe images are optional and use Cloudflare

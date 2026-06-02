@@ -11,8 +11,14 @@ create table if not exists public.recipes (
   instructions text[] not null default '{}',
   image_url text,
   source text not null default 'template',
+  tags text[] not null default '{}',
+  rationale text not null default '',
   created_at timestamptz not null default now()
 );
 
+alter table public.recipes add column if not exists tags text[] not null default '{}';
+alter table public.recipes add column if not exists rationale text not null default '';
+
 create index if not exists recipes_created_at_idx on public.recipes (created_at desc);
 create index if not exists recipes_source_idx on public.recipes (source);
+create index if not exists recipes_tags_idx on public.recipes using gin (tags);

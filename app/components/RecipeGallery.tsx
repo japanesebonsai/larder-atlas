@@ -149,13 +149,13 @@ export function RecipeGallery({ pantry, recommendations }: RecipeGalleryProps) {
             Recipe gallery
           </p>
           <h2 className="mt-2 text-4xl font-semibold leading-none text-[var(--app-text)]">
-            Template recipes, no AI call.
+            Smarter template recipes, no AI call.
           </h2>
         </div>
         <div className="flex max-w-sm flex-col items-start gap-3">
           <p className="text-sm leading-6 text-[var(--app-text-faint)]">
             Drafted from the current pantry and top recommendations. These are
-            deterministic recipe templates for V1.
+            deterministic recipes enriched with Epicure tags.
           </p>
           <Link
             href="/recipes"
@@ -222,6 +222,10 @@ export function RecipeGallery({ pantry, recommendations }: RecipeGalleryProps) {
                   {recipe.cuisine}
                 </span>
               </div>
+              <TagList tags={recipe.tags} />
+              <p className="mt-4 rounded-[20px] border border-[var(--app-border)] bg-[var(--app-field)] p-3 text-sm leading-6 text-[var(--app-text-muted)]">
+                {recipe.rationale}
+              </p>
 
               <div className="mt-4 flex flex-wrap items-center gap-2">
                 <button
@@ -320,6 +324,25 @@ function writeImageCache(images: Record<string, string>) {
 
 function trimImageCache(images: Record<string, string>) {
   return Object.fromEntries(Object.entries(images).slice(-maxCachedImages));
+}
+
+function TagList({ tags }: { tags: string[] }) {
+  if (!tags.length) {
+    return null;
+  }
+
+  return (
+    <div className="mt-4 flex flex-wrap gap-2">
+      {tags.map((tag) => (
+        <span
+          key={tag}
+          className="rounded-full border border-[var(--app-border)] bg-[var(--app-field)] px-3 py-1 text-xs font-semibold text-[var(--app-text-muted)]"
+        >
+          {tag}
+        </span>
+      ))}
+    </div>
+  );
 }
 
 function recipeKey(title: string, nextBuy: string) {
