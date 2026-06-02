@@ -205,12 +205,6 @@ export function PantryInputExperience({ ingredientNames }: { ingredientNames: st
 
   return (
     <LayoutGroup>
-      <a
-        href="#main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-[var(--app-inverse)] focus:px-4 focus:py-3 focus:text-sm focus:font-bold focus:text-[var(--app-inverse-text)]"
-      >
-        Skip to main content
-      </a>
       <main className="relative min-h-screen text-[var(--app-text)]">
         <AtlasAtmosphere theme={theme} />
         <div className="mx-auto flex min-h-screen w-full max-w-[1320px] flex-col px-4 py-5 sm:px-6 lg:px-8">
@@ -254,11 +248,7 @@ export function PantryInputExperience({ ingredientNames }: { ingredientNames: st
             </div>
           </header>
 
-          <section
-            id="main-content"
-            tabIndex={-1}
-            className="grid gap-10 border-b border-[var(--app-border)] py-10 outline-none lg:min-h-[680px] lg:grid-cols-[minmax(0,1fr)_420px] lg:items-end lg:py-16"
-          >
+          <section className="grid gap-10 border-b border-[var(--app-border)] py-10 lg:min-h-[680px] lg:grid-cols-[minmax(0,1fr)_420px] lg:items-end lg:py-16">
             <div className="max-w-5xl">
               <p className="text-xs font-semibold uppercase text-[var(--app-accent)]">
                 Epicure system
