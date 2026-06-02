@@ -114,6 +114,10 @@ The in-app metrics measure Larder Atlas itself, not Epicure's research benchmark
 
 Use these as product/runtime metrics. Do not describe them as LLM-vs-Epicure benchmark results unless a separate benchmark harness is added.
 
+The `/metrics` page runs a repeatable benchmark over fixed pantry samples using
+`/api/benchmarks`. It reports local scoring speed, matched ingredient counts,
+pair counts, and `0` model calls.
+
 ## Recommendation Approach
 
 Larder Atlas uses Epicure ingredient embeddings as the base relationship map. It then applies a lightweight local scoring layer to rank practical next pairs.

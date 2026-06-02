@@ -235,6 +235,9 @@ export function PantryInputExperience({ ingredientNames }: { ingredientNames: st
               <Link href="/recipes" className="transition hover:text-[var(--app-text)]">
                 Gallery
               </Link>
+              <Link href="/metrics" className="transition hover:text-[var(--app-text)]">
+                Metrics
+              </Link>
               <a href="#about" className="transition hover:text-[var(--app-text)]">
                 About
               </a>
