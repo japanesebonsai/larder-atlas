@@ -22,9 +22,11 @@ const maxCachedImages = 6;
 export function RecipeGallery({ pantry, recommendations }: RecipeGalleryProps) {
   const recipes = buildTemplateRecipes({ pantry, recommendations });
   const [images, setImages] = useState<Record<string, string>>({});
+  const [polishedRecipes, setPolishedRecipes] = useState<Record<string, TemplateRecipe>>({});
   const [savedRecipeKeys, setSavedRecipeKeys] = useState<Set<string>>(new Set());
   const [isRecipeStorageConfigured, setIsRecipeStorageConfigured] = useState(true);
   const [loadingId, setLoadingId] = useState("");
+  const [polishingId, setPolishingId] = useState("");
   const [savingId, setSavingId] = useState("");
   const [errorById, setErrorById] = useState<Record<string, string>>({});
 
@@ -105,6 +107,7 @@ export function RecipeGallery({ pantry, recommendations }: RecipeGalleryProps) {
   async function saveRecipe(recipe: TemplateRecipe) {
     setSavingId(recipe.id);
     setErrorById((current) => ({ ...current, [recipe.id]: "" }));
+    const isPolished = Boolean(polishedRecipes[recipe.id]);
 
     try {
       const response = await fetch("/api/recipes", {
@@ -115,7 +118,7 @@ export function RecipeGallery({ pantry, recommendations }: RecipeGalleryProps) {
         body: JSON.stringify({
           ...recipe,
           imageUrl: images[recipe.id],
-          source: "template",
+          source: isPolished ? "cloudflare-kimi" : "template",
         }),
       });
       const payload = await response.json();
@@ -141,6 +144,51 @@ export function RecipeGallery({ pantry, recommendations }: RecipeGalleryProps) {
     }
   }
 
+  async function polishRecipe(recipe: TemplateRecipe) {
+    setPolishingId(recipe.id);
+    setErrorById((current) => ({ ...current, [recipe.id]: "" }));
+
+    try {
+      const response = await fetch("/api/recipe-polish", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(recipe),
+      });
+      const payload = await response.json();
+
+      if (!response.ok || !payload.recipe) {
+        throw new Error(payload.message ?? payload.error ?? "Recipe polish failed.");
+      }
+
+      setPolishedRecipes((current) => ({
+        ...current,
+        [recipe.id]: {
+          ...recipe,
+          ...payload.recipe,
+          id: recipe.id,
+          type: recipe.type,
+          cuisine: recipe.cuisine,
+          servings: recipe.servings,
+          time: recipe.time,
+          pantryUsed: recipe.pantryUsed,
+          nextBuy: recipe.nextBuy,
+          tags: [...recipe.tags, "Kimi polish"].filter(
+            (tag, index, tags) => tags.indexOf(tag) === index,
+          ),
+        },
+      }));
+    } catch (caught) {
+      setErrorById((current) => ({
+        ...current,
+        [recipe.id]: caught instanceof Error ? caught.message : "Recipe polish failed.",
+      }));
+    } finally {
+      setPolishingId("");
+    }
+  }
+
   return (
     <section id="recipes" className="border-b border-[var(--app-border)] py-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -149,13 +197,14 @@ export function RecipeGallery({ pantry, recommendations }: RecipeGalleryProps) {
             Recipe gallery
           </p>
           <h2 className="mt-2 text-4xl font-semibold leading-none text-[var(--app-text)]">
-            Smarter template recipes, no AI call.
+            Template recipes, optional Kimi polish.
           </h2>
         </div>
         <div className="flex max-w-sm flex-col items-start gap-3">
           <p className="text-sm leading-6 text-[var(--app-text-faint)]">
             Drafted from the current pantry and top recommendations. These are
-            deterministic recipes enriched with Epicure tags.
+            deterministic recipes enriched with Epicure tags, with optional
+            Cloudflare Kimi rewriting.
           </p>
           <Link
             href="/recipes"
@@ -168,9 +217,13 @@ export function RecipeGallery({ pantry, recommendations }: RecipeGalleryProps) {
 
       {recipes.length ? (
         <div className="mt-5 grid gap-4 lg:grid-cols-2">
-          {recipes.map((recipe) => (
+          {recipes.map((templateRecipe) => {
+            const recipe = polishedRecipes[templateRecipe.id] ?? templateRecipe;
+            const isPolished = Boolean(polishedRecipes[templateRecipe.id]);
+
+            return (
             <article
-              key={recipe.id}
+              key={templateRecipe.id}
               className="rounded-[28px] border border-[var(--app-border)] bg-[var(--app-surface)] p-5 backdrop-blur-xl"
             >
               <div className="mb-5 overflow-hidden rounded-[24px] border border-[var(--app-border)] bg-[var(--app-field)]">
@@ -248,6 +301,23 @@ export function RecipeGallery({ pantry, recommendations }: RecipeGalleryProps) {
                     Database not configured
                   </span>
                 ) : null}
+                <button
+                  type="button"
+                  onClick={() => polishRecipe(recipe)}
+                  disabled={polishingId === recipe.id}
+                  className="min-h-10 cursor-pointer rounded-full border border-[var(--app-border)] px-4 text-sm font-semibold text-[var(--app-text-muted)] transition hover:border-[var(--app-accent)] hover:text-[var(--app-text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-text)] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {polishingId === recipe.id
+                    ? "Polishing..."
+                    : isPolished
+                      ? "Polish again"
+                      : "Polish with Kimi"}
+                </button>
+                {isPolished ? (
+                  <span className="text-xs font-semibold text-[var(--app-text-faint)]">
+                    Cloudflare Kimi draft
+                  </span>
+                ) : null}
               </div>
 
               <div className="mt-5 grid gap-5 md:grid-cols-[0.85fr_1.15fr]">
@@ -273,7 +343,8 @@ export function RecipeGallery({ pantry, recommendations }: RecipeGalleryProps) {
                 </div>
               </div>
             </article>
-          ))}
+            );
+          })}
         </div>
       ) : (
         <p className="mt-5 rounded-[24px] border border-[var(--app-border)] bg-[var(--app-surface)] p-5 text-sm text-[var(--app-text-faint)]">

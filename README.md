@@ -68,6 +68,22 @@ current pantry, top ingredient pairs, cuisine region, food group, vegetarian or
 vegan flags, and NOVA metadata from Epicure. Saved recipes include tags and a
 short rationale explaining why the pair works.
 
+## Optional Kimi Recipe Polish
+
+Template recipes can be polished with Cloudflare Workers AI using Kimi 2.6. This
+is optional: the app still drafts and saves deterministic template recipes when
+Cloudflare is not configured.
+
+```bash
+CLOUDFLARE_ACCOUNT_ID=
+CLOUDFLARE_API_TOKEN=
+CLOUDFLARE_TEXT_MODEL=@cf/moonshotai/kimi-k2.6
+```
+
+The polish route asks Kimi to improve title, ingredient wording, instructions,
+and rationale without adding ingredients or changing the cooking logic. Polished
+recipes are saved with `source: "cloudflare-kimi"`.
+
 ## Optional Recipe Images
 
 Template recipes do not require AI. Recipe images are optional and use Cloudflare
@@ -191,14 +207,14 @@ This app is Vercel-friendly as-is:
 - The recommendation engine runs in a Next.js serverless route.
 - The browser response strips full embedding vectors.
 - No environment variables are required for recommendations or template recipes.
-- Optional Cloudflare Workers AI environment variables only enable recipe images.
+- Optional Cloudflare Workers AI environment variables enable recipe polish and images.
 - Optional Supabase environment variables enable the stored recipe gallery.
 
 Deploy with Vercel's default Next.js settings.
 
 Cloudflare Workers Builds are not required to host this app on Vercel. If a
 Cloudflare-generated branch exists, keep Vercel focused on the normal app
-branches and use Cloudflare only as the optional image-generation API provider.
+branches and use Cloudflare only as the optional AI provider.
 
 ## Environment Variables
 
@@ -206,8 +222,9 @@ branches and use Cloudflare only as the optional image-generation API provider.
 | --- | --- | --- |
 | `SUPABASE_URL` | No | Enables global stored recipe gallery. |
 | `SUPABASE_SERVICE_ROLE_KEY` | No | Server-only key for saving and listing recipes. |
-| `CLOUDFLARE_ACCOUNT_ID` | No | Enables optional recipe image generation. |
+| `CLOUDFLARE_ACCOUNT_ID` | No | Enables optional Kimi recipe polish and recipe image generation. |
 | `CLOUDFLARE_API_TOKEN` | No | Cloudflare Workers AI token with Workers AI read access. |
+| `CLOUDFLARE_TEXT_MODEL` | No | Optional text model override; defaults to Kimi 2.6. |
 | `CLOUDFLARE_IMAGE_MODEL` | No | Optional model override; defaults to Flux Schnell. |
 
 No environment variables are required for pantry recommendations, recipe
