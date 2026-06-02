@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 const recipeSelect =
-  "id,title,type,cuisine,servings,time,pantry_used,next_buy,ingredients,instructions,image_url,source,created_at";
+  "id,title,type,cuisine,servings,time,pantry_used,next_buy,ingredients,instructions,image_url,source,created_at,tags,rationale";
 
 type RecipePayload = {
   title?: string;
@@ -15,6 +15,8 @@ type RecipePayload = {
   instructions?: string[];
   imageUrl?: string;
   source?: string;
+  tags?: string[];
+  rationale?: string;
 };
 
 type SupabaseRecipeRow = {
@@ -31,6 +33,8 @@ type SupabaseRecipeRow = {
   image_url: string | null;
   source: string;
   created_at: string;
+  tags?: string[] | null;
+  rationale?: string | null;
 };
 
 export const runtime = "nodejs";
@@ -147,6 +151,8 @@ function normalizeRecipe(body: RecipePayload) {
     instructions: body.instructions,
     image_url: body.imageUrl ?? null,
     source: body.source ?? "template",
+    tags: body.tags ?? [],
+    rationale: body.rationale ?? "",
   };
 }
 
@@ -165,5 +171,7 @@ function toPublicRecipe(row: SupabaseRecipeRow) {
     imageUrl: row.image_url,
     source: row.source,
     createdAt: row.created_at,
+    tags: row.tags ?? [],
+    rationale: row.rationale ?? "",
   };
 }

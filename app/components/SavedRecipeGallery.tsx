@@ -24,8 +24,10 @@ export function SavedRecipeGallery() {
       recipe.type,
       recipe.cuisine,
       recipe.nextBuy,
+      recipe.rationale,
       ...recipe.ingredients,
       ...recipe.instructions,
+      ...recipe.tags,
     ]
       .join(" ")
       .toLowerCase();
@@ -137,6 +139,12 @@ export function SavedRecipeGallery() {
                   {recipe.cuisine}
                 </span>
               </div>
+              <TagList tags={recipe.tags} />
+              {recipe.rationale ? (
+                <p className="mt-4 rounded-[20px] border border-[var(--app-border)] bg-[var(--app-field)] p-3 text-sm leading-6 text-[var(--app-text-muted)]">
+                  {recipe.rationale}
+                </p>
+              ) : null}
 
               <div className="mt-5 grid gap-5">
                 <div>
@@ -207,4 +215,23 @@ function FilterSelect({
 
 function uniqueOptions(values: string[]) {
   return Array.from(new Set(values.filter(Boolean))).sort((a, b) => a.localeCompare(b));
+}
+
+function TagList({ tags }: { tags: string[] }) {
+  if (!tags.length) {
+    return null;
+  }
+
+  return (
+    <div className="mt-4 flex flex-wrap gap-2">
+      {tags.map((tag) => (
+        <span
+          key={tag}
+          className="rounded-full border border-[var(--app-border)] bg-[var(--app-field)] px-3 py-1 text-xs font-semibold text-[var(--app-text-muted)]"
+        >
+          {tag}
+        </span>
+      ))}
+    </div>
+  );
 }
