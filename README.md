@@ -70,6 +70,9 @@ CLOUDFLARE_IMAGE_MODEL=@cf/black-forest-labs/flux-1-schnell
 If these values are not set, the app still works and the image generator returns
 a disabled-state message.
 
+Image generation is rate limited to 5 requests per hour per anonymous visitor/IP
+pair. This protects the optional paid API without requiring login.
+
 ## Architecture
 
 ```text

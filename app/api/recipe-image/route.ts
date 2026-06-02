@@ -2,6 +2,10 @@ import { Buffer } from "node:buffer";
 import { NextResponse } from "next/server";
 
 const defaultModel = "@cf/black-forest-labs/flux-1-schnell";
+const visitorCookieName = "larder_atlas_visitor";
+const rateLimitWindowMs = 60 * 60 * 1000;
+const maxImagesPerWindow = 5;
+const rateLimits = new Map<string, { count: number; resetAt: number }>();
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -19,6 +23,29 @@ export async function POST(request: Request) {
       },
       { status: 503 },
     );
+  }
+
+  const visitorId = getOrCreateVisitorId(request);
+  const rateLimit = checkRateLimit(rateLimitKey(request, visitorId));
+
+  if (!rateLimit.allowed) {
+    const response = NextResponse.json(
+      {
+        error: "Image generation limit reached",
+        message: `You can generate ${maxImagesPerWindow} recipe images per hour. Try again in ${rateLimit.retryAfterMinutes} minutes.`,
+        retryAfterSeconds: rateLimit.retryAfterSeconds,
+      },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": String(rateLimit.retryAfterSeconds),
+        },
+      },
+    );
+
+    setVisitorCookie(response, visitorId);
+
+    return response;
   }
 
   try {
@@ -51,12 +78,16 @@ export async function POST(request: Request) {
       const bytes = await response.arrayBuffer();
       const base64 = Buffer.from(bytes).toString("base64");
 
-      return NextResponse.json({
+      const imageResponse = NextResponse.json({
         image: `data:${contentType};base64,${base64}`,
         prompt,
         provider: "cloudflare-workers-ai",
         model,
       });
+
+      setVisitorCookie(imageResponse, visitorId);
+
+      return imageResponse;
     }
 
     const payload = await response.json();
@@ -69,19 +100,98 @@ export async function POST(request: Request) {
       );
     }
 
-    return NextResponse.json({
+    const imageResponse = NextResponse.json({
       image,
       prompt,
       provider: "cloudflare-workers-ai",
       model,
     });
+
+    setVisitorCookie(imageResponse, visitorId);
+
+    return imageResponse;
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
 
-    return NextResponse.json(
+    const errorResponse = NextResponse.json(
       { error: "Unable to generate recipe image", message },
       { status: 400 },
     );
+
+    setVisitorCookie(errorResponse, visitorId);
+
+    return errorResponse;
+  }
+}
+
+function getOrCreateVisitorId(request: Request) {
+  const cookie = request.headers
+    .get("cookie")
+    ?.split(";")
+    .map((part) => part.trim())
+    .find((part) => part.startsWith(`${visitorCookieName}=`));
+
+  return cookie?.split("=")[1] || crypto.randomUUID();
+}
+
+function setVisitorCookie(response: NextResponse, visitorId: string) {
+  response.cookies.set(visitorCookieName, visitorId, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    maxAge: 60 * 60 * 24 * 90,
+    path: "/",
+  });
+}
+
+function rateLimitKey(request: Request, visitorId: string) {
+  const forwardedFor = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+  const realIp = request.headers.get("x-real-ip")?.trim();
+  const ip = forwardedFor || realIp || "unknown";
+
+  return `${visitorId}:${ip}`;
+}
+
+function checkRateLimit(key: string) {
+  const now = Date.now();
+  const existing = rateLimits.get(key);
+
+  cleanupExpiredRateLimits(now);
+
+  if (!existing || existing.resetAt <= now) {
+    rateLimits.set(key, {
+      count: 1,
+      resetAt: now + rateLimitWindowMs,
+    });
+
+    return { allowed: true };
+  }
+
+  if (existing.count >= maxImagesPerWindow) {
+    const retryAfterSeconds = Math.max(1, Math.ceil((existing.resetAt - now) / 1000));
+
+    return {
+      allowed: false,
+      retryAfterSeconds,
+      retryAfterMinutes: Math.ceil(retryAfterSeconds / 60),
+    };
+  }
+
+  existing.count += 1;
+  rateLimits.set(key, existing);
+
+  return { allowed: true };
+}
+
+function cleanupExpiredRateLimits(now: number) {
+  if (rateLimits.size < 500) {
+    return;
+  }
+
+  for (const [key, value] of rateLimits.entries()) {
+    if (value.resetAt <= now) {
+      rateLimits.delete(key);
+    }
   }
 }
 
