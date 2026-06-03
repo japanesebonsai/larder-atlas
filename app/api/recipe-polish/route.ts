@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-const defaultModel = "@cf/moonshotai/kimi-k2.6";
+const defaultModel = "@cf/meta/llama-3.2-3b-instruct";
 const maxRecipePolishesPerWindow = 10;
 const rateLimitWindowMs = 60 * 60 * 1000;
 const visitorCookieName = "larder_atlas_visitor";
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         error: "Recipe polishing is not configured",
-        message: "Set CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN to enable Kimi polish.",
+        message: "Set CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN to enable Llama polish.",
       },
       { status: 503 },
     );
@@ -148,7 +148,7 @@ function polishFromText(text: string, fallback: RecipePolishPayload) {
     return {
       recipe: buildFallbackPolish(fallback),
       warning:
-        "Kimi returned malformed text, so Larder Atlas applied a safe local polish instead.",
+        "Llama returned malformed text, so Larder Atlas applied a safe local polish instead.",
     };
   }
 }
@@ -320,7 +320,7 @@ function parsePolishedRecipe(text: string, fallback: RecipePolishPayload) {
       typeof parsed.rationale === "string" && parsed.rationale.trim()
         ? parsed.rationale.trim()
         : fallback.rationale,
-    source: "cloudflare-kimi",
+    source: "cloudflare-llama",
   };
 }
 
@@ -386,7 +386,7 @@ function parseRecipeJson(text: string) {
     }
   }
 
-  throw new Error("Kimi returned text, but no valid polished recipe JSON.");
+  throw new Error("Llama returned text, but no valid polished recipe JSON.");
 }
 
 function extractJsonObjects(text: string) {

@@ -68,21 +68,21 @@ current pantry, top ingredient pairs, cuisine region, food group, vegetarian or
 vegan flags, and NOVA metadata from Epicure. Saved recipes include tags and a
 short rationale explaining why the pair works.
 
-## Optional Kimi Recipe Polish
+## Optional Llama Recipe Polish
 
-Template recipes can be polished with Cloudflare Workers AI using Kimi 2.6. This
-is optional: the app still drafts and saves deterministic template recipes when
-Cloudflare is not configured.
+Template recipes can be polished with Cloudflare Workers AI using Llama 3.2 3B.
+This is optional: the app still drafts and saves deterministic template recipes
+when Cloudflare is not configured.
 
 ```bash
 CLOUDFLARE_ACCOUNT_ID=
 CLOUDFLARE_API_TOKEN=
-CLOUDFLARE_TEXT_MODEL=@cf/moonshotai/kimi-k2.6
+CLOUDFLARE_TEXT_MODEL=@cf/meta/llama-3.2-3b-instruct
 ```
 
-The polish route asks Kimi to improve title, ingredient wording, instructions,
+The polish route asks Llama to improve title, ingredient wording, instructions,
 and rationale without adding ingredients or changing the cooking logic. Polished
-recipes are saved with `source: "cloudflare-kimi"`.
+recipes are saved with `source: "cloudflare-llama"`.
 
 ## Optional Recipe Images
 
@@ -222,9 +222,9 @@ branches and use Cloudflare only as the optional AI provider.
 | --- | --- | --- |
 | `SUPABASE_URL` | No | Enables global stored recipe gallery. |
 | `SUPABASE_SERVICE_ROLE_KEY` | No | Server-only key for saving and listing recipes. |
-| `CLOUDFLARE_ACCOUNT_ID` | No | Enables optional Kimi recipe polish and recipe image generation. |
+| `CLOUDFLARE_ACCOUNT_ID` | No | Enables optional Llama recipe polish and recipe image generation. |
 | `CLOUDFLARE_API_TOKEN` | No | Cloudflare Workers AI token with Workers AI read access. |
-| `CLOUDFLARE_TEXT_MODEL` | No | Optional text model override; defaults to Kimi 2.6. |
+| `CLOUDFLARE_TEXT_MODEL` | No | Optional text model override; defaults to Llama 3.2 3B. |
 | `CLOUDFLARE_IMAGE_MODEL` | No | Optional model override; defaults to Flux Schnell. |
 
 No environment variables are required for pantry recommendations, recipe

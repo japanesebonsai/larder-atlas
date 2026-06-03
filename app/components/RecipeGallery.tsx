@@ -119,7 +119,7 @@ export function RecipeGallery({ pantry, recommendations }: RecipeGalleryProps) {
         body: JSON.stringify({
           ...recipe,
           imageUrl: images[recipe.id],
-          source: isPolished ? "cloudflare-kimi" : "template",
+          source: isPolished ? "cloudflare-llama" : "template",
         }),
       });
       const payload = await response.json();
@@ -150,7 +150,7 @@ export function RecipeGallery({ pantry, recommendations }: RecipeGalleryProps) {
     setErrorById((current) => ({ ...current, [recipe.id]: "" }));
     setPolishStatusById((current) => ({
       ...current,
-      [recipe.id]: "Kimi is rewriting this recipe. This can take 30-60 seconds.",
+      [recipe.id]: "Llama is rewriting this recipe. This can take a moment.",
     }));
 
     try {
@@ -179,7 +179,7 @@ export function RecipeGallery({ pantry, recommendations }: RecipeGalleryProps) {
           time: recipe.time,
           pantryUsed: recipe.pantryUsed,
           nextBuy: recipe.nextBuy,
-          tags: [...recipe.tags, "Kimi polish"].filter(
+          tags: [...recipe.tags, "Llama polish"].filter(
             (tag, index, tags) => tags.indexOf(tag) === index,
           ),
         },
@@ -188,7 +188,7 @@ export function RecipeGallery({ pantry, recommendations }: RecipeGalleryProps) {
         ...current,
         [recipe.id]: payload.warning
           ? `${payload.warning} Review before saving.`
-          : "Polished by Kimi. Review the updated recipe before saving.",
+          : "Polished by Llama. Review the updated recipe before saving.",
       }));
     } catch (caught) {
       setErrorById((current) => ({
@@ -209,14 +209,14 @@ export function RecipeGallery({ pantry, recommendations }: RecipeGalleryProps) {
             Recipe gallery
           </p>
           <h2 className="mt-2 text-4xl font-semibold leading-none text-[var(--app-text)]">
-            Template recipes, optional Kimi polish.
+            Template recipes, optional Llama polish.
           </h2>
         </div>
         <div className="flex max-w-sm flex-col items-start gap-3">
           <p className="text-sm leading-6 text-[var(--app-text-faint)]">
             Drafted from the current pantry and top recommendations. These are
             deterministic recipes enriched with Epicure tags, with optional
-            Cloudflare Kimi rewriting.
+            Cloudflare Llama rewriting.
           </p>
           <Link
             href="/recipes"
@@ -323,11 +323,11 @@ export function RecipeGallery({ pantry, recommendations }: RecipeGalleryProps) {
                     ? "Polishing..."
                     : isPolished
                       ? "Polish again"
-                      : "Polish with Kimi"}
+                      : "Polish with Llama"}
                 </button>
                 {isPolished ? (
                   <span className="text-xs font-semibold text-[var(--app-text-faint)]">
-                    Cloudflare Kimi draft
+                    Cloudflare Llama draft
                   </span>
                 ) : null}
                 {polishStatusById[recipe.id] ? (
