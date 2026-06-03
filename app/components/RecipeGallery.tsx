@@ -186,7 +186,9 @@ export function RecipeGallery({ pantry, recommendations }: RecipeGalleryProps) {
       }));
       setPolishStatusById((current) => ({
         ...current,
-        [recipe.id]: "Polished by Kimi. Review the updated recipe before saving.",
+        [recipe.id]: payload.warning
+          ? `${payload.warning} Review before saving.`
+          : "Polished by Kimi. Review the updated recipe before saving.",
       }));
     } catch (caught) {
       setErrorById((current) => ({

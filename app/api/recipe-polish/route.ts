@@ -114,11 +114,12 @@ export async function POST(request: Request) {
 
     const payload = await response.json();
     const text = extractText(payload);
-    const polished = parsePolishedRecipe(text, body);
+    const { recipe: polished, warning } = polishFromText(text, body);
     const polishResponse = NextResponse.json({
       recipe: polished,
       provider: "cloudflare-workers-ai",
       model,
+      warning,
     });
 
     setVisitorCookie(polishResponse, visitorId);
@@ -134,6 +135,21 @@ export async function POST(request: Request) {
     setVisitorCookie(response, visitorId);
 
     return response;
+  }
+}
+
+function polishFromText(text: string, fallback: RecipePolishPayload) {
+  try {
+    return {
+      recipe: parsePolishedRecipe(text, fallback),
+      warning: "",
+    };
+  } catch {
+    return {
+      recipe: buildFallbackPolish(fallback),
+      warning:
+        "Kimi returned malformed text, so Larder Atlas applied a safe local polish instead.",
+    };
   }
 }
 
@@ -306,6 +322,46 @@ function parsePolishedRecipe(text: string, fallback: RecipePolishPayload) {
         : fallback.rationale,
     source: "cloudflare-kimi",
   };
+}
+
+function buildFallbackPolish(recipe: RecipePolishPayload) {
+  const ingredients = recipe.ingredients?.map(cleanRecipeLine) ?? [];
+  const instructions = recipe.instructions?.map(cleanRecipeLine).slice(0, 6) ?? [];
+  const rationale = recipe.rationale?.trim()
+    ? cleanRecipeLine(recipe.rationale)
+    : `${humanize(recipe.nextBuy ?? "the pair ingredient")} keeps the pantry recipe practical without adding anything extra.`;
+
+  return {
+    ...recipe,
+    title: cleanTitle(recipe.title ?? "Pantry Recipe"),
+    ingredients,
+    instructions,
+    rationale,
+    source: "local-polish-fallback",
+  };
+}
+
+function cleanRecipeLine(value: string) {
+  const cleaned = value.replace(/\s+/g, " ").trim();
+
+  if (!cleaned) {
+    return cleaned;
+  }
+
+  return `${cleaned.charAt(0).toUpperCase()}${cleaned.slice(1)}`;
+}
+
+function cleanTitle(value: string) {
+  return value
+    .replace(/\s+/g, " ")
+    .trim()
+    .split(" ")
+    .map((word) => (word ? `${word.charAt(0).toUpperCase()}${word.slice(1)}` : word))
+    .join(" ");
+}
+
+function humanize(value: string) {
+  return value.replaceAll("_", " ");
 }
 
 function parseRecipeJson(text: string) {
