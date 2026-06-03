@@ -139,7 +139,10 @@ export function SavedRecipeGallery() {
                   {recipe.cuisine}
                 </span>
               </div>
-              <TagList tags={recipe.tags} />
+              <div className="mt-4 flex flex-wrap gap-2">
+                <SourceBadge source={recipe.source} />
+                <TagList tags={recipe.tags} />
+              </div>
               {recipe.rationale ? (
                 <p className="mt-4 rounded-[20px] border border-[var(--app-border)] bg-[var(--app-field)] p-3 text-sm leading-6 text-[var(--app-text-muted)]">
                   {recipe.rationale}
@@ -222,7 +225,7 @@ function TagList({ tags }: { tags: string[] }) {
   }
 
   return (
-    <div className="mt-4 flex flex-wrap gap-2">
+    <>
       {tags.map((tag) => (
         <span
           key={tag}
@@ -231,7 +234,23 @@ function TagList({ tags }: { tags: string[] }) {
           {tag}
         </span>
       ))}
-    </div>
+    </>
+  );
+}
+
+function SourceBadge({ source }: { source: string }) {
+  const isAiGenerated = source !== "template";
+
+  return (
+    <span
+      className={`rounded-full border px-3 py-1 text-xs font-semibold ${
+        isAiGenerated
+          ? "border-[var(--app-accent)] bg-[var(--app-accent-soft)] text-[var(--app-accent-text)]"
+          : "border-[var(--app-border)] bg-[var(--app-field)] text-[var(--app-text-muted)]"
+      }`}
+    >
+      {isAiGenerated ? "AI generated" : "Template"}
+    </span>
   );
 }
 
