@@ -29,6 +29,7 @@ export function RecipeGallery({ pantry, recommendations }: RecipeGalleryProps) {
   const [polishingId, setPolishingId] = useState("");
   const [savingId, setSavingId] = useState("");
   const [errorById, setErrorById] = useState<Record<string, string>>({});
+  const [polishStatusById, setPolishStatusById] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -147,6 +148,10 @@ export function RecipeGallery({ pantry, recommendations }: RecipeGalleryProps) {
   async function polishRecipe(recipe: TemplateRecipe) {
     setPolishingId(recipe.id);
     setErrorById((current) => ({ ...current, [recipe.id]: "" }));
+    setPolishStatusById((current) => ({
+      ...current,
+      [recipe.id]: "Kimi is rewriting this recipe. This can take 30-60 seconds.",
+    }));
 
     try {
       const response = await fetch("/api/recipe-polish", {
@@ -179,11 +184,16 @@ export function RecipeGallery({ pantry, recommendations }: RecipeGalleryProps) {
           ),
         },
       }));
+      setPolishStatusById((current) => ({
+        ...current,
+        [recipe.id]: "Polished by Kimi. Review the updated recipe before saving.",
+      }));
     } catch (caught) {
       setErrorById((current) => ({
         ...current,
         [recipe.id]: caught instanceof Error ? caught.message : "Recipe polish failed.",
       }));
+      setPolishStatusById((current) => ({ ...current, [recipe.id]: "" }));
     } finally {
       setPolishingId("");
     }
@@ -316,6 +326,16 @@ export function RecipeGallery({ pantry, recommendations }: RecipeGalleryProps) {
                 {isPolished ? (
                   <span className="text-xs font-semibold text-[var(--app-text-faint)]">
                     Cloudflare Kimi draft
+                  </span>
+                ) : null}
+                {polishStatusById[recipe.id] ? (
+                  <span className="basis-full text-xs font-semibold text-[var(--app-text-faint)]">
+                    {polishStatusById[recipe.id]}
+                  </span>
+                ) : null}
+                {errorById[recipe.id] ? (
+                  <span className="basis-full text-xs font-semibold text-[var(--app-danger-text)]">
+                    {errorById[recipe.id]}
                   </span>
                 ) : null}
               </div>
